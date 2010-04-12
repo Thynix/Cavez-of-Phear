@@ -1,0 +1,13 @@
+STEP-BY-STEP INSTALLATION
+
+  1.  Download and untar the archive:
+      $ tar jxvf phear-<version>.tar.bz2
+
+  2.  Enter the newly created directory:
+      $ cd phear-<version>
+
+  3.  Compile the game:
+      $ make
+
+  4.  If everything went well, start the game:
+      $ ./phear

@@ -1,0 +1,21 @@
+TEMPORARY EDITOR DOCUMENTATION
+--------------------------------------------
+
+START THE EDITOR
+
+  $ ./phear -e <map>
+
+USE THE EDITOR
+
+  Keys 0-9 places objects, 's' saves the map, 'q' quits,
+  'l' enables lock-mode (lets you draw using the arrow-keys)
+
+PLAY YOUR MAP
+
+  $ ./phear <map>
+
+SEND IT IN!
+
+  Please send your maps to tom@x86.no. A web based archive
+  of custom maps will be made available if there is any
+  interest for such a thing..
