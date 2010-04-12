@@ -1,25 +1,29 @@
 You are trapped in the CAVEZ of PHEAR. You must make it out of 
-all the caves alive. To advance to the next cave collect the 
+all the caves alive. To advance to the next cave collect all 
 diamonds.
 
-Movement: Arrow keys or numpad
+Diamond - * - 10 points
+Money - $ - 100 points
+Extra life every 1000 points.
 
-Toggle mute: M
-Show position: W
-Suicide: K
-Quicksave: S
-Quickload: L
-Pause: P
+Movement - Arrow keys or numpad
 
-Bombs: %
+Toggle mute - M
+Show position - W
+Suicide - K
+Quicksave - S
+Quickload - L
+Pause - P
+
+Bombs - %
 		B to place 
 		T to detonate
 
-Monsters: M
+Monsters - M
 		Rocks and bombs are effective against them,
 		but they're lethal if they catch up.
 
-Rocks: O
+Rocks - O
 		Squishing hazard.
 
 Send comments, questions, requests, bugs, and other feedback to
