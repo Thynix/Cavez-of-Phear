@@ -2,9 +2,9 @@
 #include "common.h"
 #include "proto.h"
 
-int gplot(char *filename, int x_offset, int y_offset, int ign_space);
+int gplot(char *filename, int x_offset, int y_offset, bool ign_space);
 
-int gplot(char *filename, int x_offset, int y_offset, int ign_space)
+int gplot(char *filename, int x_offset, int y_offset, bool ign_space)
 {
   FILE *fp;
   int x, y;
@@ -30,7 +30,7 @@ int gplot(char *filename, int x_offset, int y_offset, int ign_space)
 
     else {
 
-      if(c == ' ' && ign_space == 1) {
+      if(c == ' ' && ign_space) {
         
       }
       else {

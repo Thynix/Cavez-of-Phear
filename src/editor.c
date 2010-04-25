@@ -47,7 +47,9 @@ int editor_main(char *file)
     fclose(fp);
     load_map(file, map);
   }
- 
+
+	//write walls for blank level. (why aren't these just implied by the game itself?
+	//why waste memory defining? these can't be deleted... maps should be saved as smaller inside area
   for(x = 0; x < MAP_XSIZE; x++) map[0][x] = MAP_WALL;
   for(x = 0; x < MAP_XSIZE; x++) map[MAP_YSIZE - 1][x] = MAP_WALL;
   for(y = 0; y < MAP_YSIZE; y++) map[y][0] = MAP_WALL;
@@ -120,9 +122,12 @@ int editor_main(char *file)
 
     if(tolower(input) == 's') {
       beep();
+      curs_set(0);
       if(save_map(file) == 1) {
-        /* bail("error: save_map() failed\n"); */
+         bail("error: save_map() failed\n");
       }
+      
+      curs_set(1);
     }
 
     /* if(tolower(input) == 'x') {
@@ -184,45 +189,38 @@ void editor_draw_map(void)
 
 }
 
-
 int save_map(char *filename)
 {
   int x, y;
   FILE *fp;
 
-  curs_set(0);
-
-  fp = fopen(filename, "w");
+  fp = fopen(filename, "wb");
   if(fp == NULL) {
     msgbox("ERROR: Unable to open file for writing!");
-    curs_set(1);
     return 1;
   }
 
-  for(y = 0; y < MAP_YSIZE; y++) {
-    for(x = 0; x < MAP_XSIZE; x++) {
-
+  for(y = 0; y < MAP_YSIZE; ++y) {
+    for(x = 0; x < MAP_XSIZE; ++x) {
       fputc(map[y][x], fp);
-
+//	mvaddch(y+1,x,conv_char(map[y][x]));
     }
   }
-
-  msgbox("Saved successfully!");
+	
+	msgbox("Save succeeded!");
 
   fclose(fp);
-  curs_set(1);
 
   return 0;
 }
-
 
 int count_object(int object)
 {
   int x, y;
   int rval = 0;
 
-  for(y = 0; y < MAP_YSIZE; y++) {
-    for(x = 0; x < MAP_XSIZE; x++) {
+  for(y = 0; y < MAP_YSIZE; ++y) {
+    for(x = 0; x < MAP_XSIZE; ++x) {
       if(map[y][x] == object) {
         rval++;
       }

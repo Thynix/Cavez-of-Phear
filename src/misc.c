@@ -51,6 +51,10 @@ int wait_for_input(void)
 
 void fade_dissolv(void)
 {
+	//todo: add different, possibly randomized screen wiping patterns
+		//spiral
+		//close in from edges?
+		//diagonal lines in to center, then back and forth along resulting triangles from center to edges
   int i;
 
   for(i = 0; i < 1000*10; i++) {

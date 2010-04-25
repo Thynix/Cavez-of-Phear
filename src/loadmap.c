@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <ncurses.h>
 #include "common.h"
 #include "proto.h"
@@ -19,10 +20,11 @@ int load_map(char *filename, char map[MAP_YSIZE][MAP_XSIZE])
     for(x = 0; x < MAP_XSIZE; x++) {
 
       map[y][x] = 0;
-
       c = fgetc(fp);
+
       if(c == EOF) {
         fclose(fp);
+			bail("Unexpected end to map!");
         return 1;
       }
 
