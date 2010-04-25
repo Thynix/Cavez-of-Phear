@@ -112,12 +112,13 @@ int main(int argc, char **argv)
 		//new game
 		else if(temp == -2)
 		{
-			level = 1;
+			make_ready();
 			load_level = true;
 		}
 		//level selected
 		else if(temp >= 0)
 		{
+			make_ready();
 			level = temp;
 			load_level = true;
 		}
