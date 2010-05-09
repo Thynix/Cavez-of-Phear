@@ -4,7 +4,7 @@ DESTDIR = ..
 
 CC = gcc
 INSTALL = install
-CFLAGS = -g -Wall -O2
+CFLAGS = -s -Wall -O2
 LDFLAGS = -lncurses
 
 all: phear install clean
