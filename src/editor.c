@@ -44,11 +44,15 @@ int editor_main(char *file)
 
   fp = fopen(file, "r");
   if(fp != NULL) {
-    fclose(fp);
-    load_map(file, map);
+    load_map(fp, map);
   }
+  else
+  {
+  	bail("Unable to open map!");
+  }
+  fclose(fp);
 
-	//write walls for blank level. (why aren't these just implied by the game itself?
+	//write outside walls.
 	//why waste memory defining? these can't be deleted... maps should be saved as smaller inside area
   for(x = 0; x < MAP_XSIZE; x++) map[0][x] = MAP_WALL;
   for(x = 0; x < MAP_XSIZE; x++) map[MAP_YSIZE - 1][x] = MAP_WALL;
@@ -123,8 +127,16 @@ int editor_main(char *file)
     if(tolower(input) == 's') {
       beep();
       curs_set(0);
-      if(save_map(file) == 1) {
-         bail("error: save_map() failed\n");
+      FILE *fp = fopen(file, "wb");
+      if(fp != NULL)
+      {
+	      if(save_map(fp) == 1) {
+		 bail("error: save_map() failed\n");
+	      }
+      }
+      else
+      {
+      	bail("Failed to save map!");
       }
       
       curs_set(1);
@@ -189,27 +201,17 @@ void editor_draw_map(void)
 
 }
 
-int save_map(char *filename)
+int save_map(FILE *fp)
 {
   int x, y;
-  FILE *fp;
-
-  fp = fopen(filename, "wb");
-  if(fp == NULL) {
-    msgbox("ERROR: Unable to open file for writing!");
-    return 1;
-  }
 
   for(y = 0; y < MAP_YSIZE; ++y) {
     for(x = 0; x < MAP_XSIZE; ++x) {
       fputc(map[y][x], fp);
-//	mvaddch(y+1,x,conv_char(map[y][x]));
     }
   }
 	
-	msgbox("Save succeeded!");
-
-  fclose(fp);
+  msgbox("Save succeeded!");
 
   return 0;
 }

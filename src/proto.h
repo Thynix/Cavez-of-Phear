@@ -11,9 +11,10 @@ int isready(int);
 
 void _beep(void);
 
-void draw_map(void);
+void draw_map(bool draw_player);
 int update_map(void);
-void create_map(char *mapname);
+void player_get_item(int y, int x);
+void create_map(FILE *fp);
 void prepare_map();
 void fix_map();
 void draw_status(void);
@@ -32,13 +33,13 @@ void level_done(int x, int y);
 void got_bombs();
 
 int editor_main(char *file);
-int save_map(char *filename);
-int load_map(char *filename, char map[MAP_YSIZE][MAP_XSIZE]);
+int save_map(FILE *fp);
+int load_map(FILE *fp, char map[MAP_YSIZE][MAP_XSIZE]);
 void editor_draw_status(void);
 void editor_draw_map(void);
 
-int save_game(char *filename, int lives, long int score, long int score_last_extralife, int bombs, int diamonds_left, int level);
-int load_game(char *filename, int *lives, long int *score, long int *score_last_extralife, int *bombs, int *diamonds_left, int *level);
+int save_game(FILE *fp, int lives, long int score, long int score_last_extralife, int bombs, int level);
+int load_game(FILE *fp, int *lives, long int *score, long int *score_last_extralife, int *bombs, int *level);
 int save_keys(char *filename);
 int load_keys(char *filename);
 void default_keys();

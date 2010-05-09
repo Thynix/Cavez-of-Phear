@@ -102,11 +102,6 @@ int menu(void)
 	draw_menu_items();
 	refresh();
 
-	if(load_keys("controls.conf") == 1)
-	{
-		default_keys();
-	}
-
 	while(true)
 	{
 		input = tolower(getch());

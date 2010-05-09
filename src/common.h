@@ -1,4 +1,4 @@
-#define VERSION "0.5"
+#define VERSION "0.6"
 
 #define MAP_XSIZE 80
 #define MAP_YSIZE 23
