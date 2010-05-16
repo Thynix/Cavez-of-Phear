@@ -4,7 +4,7 @@ DESTDIR_DATA = /usr/local/share
 make:
 	cd src && make
 clean:
-	rm -f phear editor
+	rm -f phear
 install:
 	mkdir -p $(DESTDIR_BIN)
 	mkdir -p $(DESTDIR_DATA)/phear

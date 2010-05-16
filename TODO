@@ -1,9 +1,7 @@
 TODO for CAVEZ of PHEAR:
 
-   * Code cleanup.
+   * Code cleanup; key binding and monster_dance in main.c are in need.
 
-   * Add metadata to maps.
+   * Add metadata to maps. - what kind?
 
-   * Add support for custom levelpacks.
-
-   * Add help/info screen.
+   * Add support for custom levelpacks. - zlib?

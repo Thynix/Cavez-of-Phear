@@ -1,14 +1,22 @@
-TEMPORARY EDITOR DOCUMENTATION
+EDITOR DOCUMENTATION
 --------------------------------------------
 
 START THE EDITOR
 
   $ ./phear -e <map>
+  or from the main menu
 
 USE THE EDITOR
 
-  Keys 0-9 places objects, 's' saves the map, 'q' quits,
-  'l' enables lock-mode (lets you draw using the arrow-keys)
+  Keys 0-9 to select object placement.
+  Arrow keys to move.
+  C to Save As.
+  Enter or space to place a corner of the rectangle, a point, or fill.
+  Escape to cancel the current rectangle.
+  F or TAB to cycle through fill modes: point, rectangle, and all.
+  P to enable physics with the option of keeping the results.
+  S to save.
+  Q to quit.
 
 PLAY YOUR MAP
 
@@ -16,6 +24,6 @@ PLAY YOUR MAP
 
 SEND IT IN!
 
-  Please send your maps to tom@x86.no. A web based archive
-  of custom maps will be made available if there is any
-  interest for such a thing..
+  Please send your maps to tom@x86.no or steve@asksteved.com. 
+  A web based archive of custom maps will be made available
+  if there is any interest for such a thing.

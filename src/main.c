@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 	curses_start();
 
 	if(COLS < 80 || LINES < 25)
-	bail("error: your terminal size must be at least 80x25");
+	bail("Your terminal size must be at least 80x25");
 
 	signal(SIGINT, sigint_handler);
 	signal(SIGWINCH, sigwinch_handler);
@@ -151,6 +151,7 @@ void load_game_wrapper(void)
 	if(fp != NULL) {
 		create_map(fp);
 		update_player_position();
+		diamonds_left = count_diamonds();
 		if(load_game(fp, &lives, &score, &score_last_extralife, &bombs, &level) == 1)
 		{
 			msgbox("Save file invalid!");
@@ -171,8 +172,7 @@ int main_loop()
 	int old_p_y;
 	int x_direction;
 	int update_delay;
-	int changes;
-	int rval;
+	//int changes;
 	long last_tick_time = 0;
 	int tick = 100;
 	int ticks_per_second = 100;
@@ -193,6 +193,7 @@ int main_loop()
 		{
 			create_map(fp);
 			update_player_position();
+			diamonds_left = count_diamonds();
 		}
 		else
 		{
@@ -204,19 +205,17 @@ int main_loop()
 		load_game_wrapper();
 	}
 
-	diamonds_left = count_diamonds();
-
 	game_in_progress = true;
 
 	while(update_map() > 0);
-	draw_map(true);
+	draw_map();
 	draw_status();
 	refresh();
 
 	flushinp();
 
 	while(1) {
-		++tick;
+		tick++;
 		if (time(NULL) > last_tick_time) {
 			last_tick_time = time(NULL);
 			ticks_per_second = tick;
@@ -228,7 +227,7 @@ int main_loop()
 		}
 
 		if(need_refresh == 1) {
-			draw_map(true);
+			draw_map();
 			draw_status();
 			refresh();
 			need_refresh = 0;
@@ -238,7 +237,7 @@ int main_loop()
 			level_done(p_x, p_y);
 		}
 
-		++mcount;
+		mcount++;
 		if (mcount == 9) {
 			mcount = 0;
 			do_the_monster_dance();
@@ -247,14 +246,13 @@ int main_loop()
 		}
 
 		if(isready(0)) {
-
 			input = tolower(getch());
 			flushinp();
 			if(input == drop_bomb)
 			{
 				if(bombs > 0 && map[p_y][p_x] != MAP_BOMB) {
 
-					--bombs;
+					bombs++;
 
 					if(map[p_y+1][p_x] == MAP_EMPTY) {
 						map[p_y+1][p_x] = MAP_BOMB;
@@ -274,6 +272,7 @@ int main_loop()
 					else {
 						msgbox("Cannot place bombs from this position!");
 					}
+					full_update();
 					need_refresh = 1;
 				}
 			}
@@ -285,19 +284,14 @@ int main_loop()
 			else if(input == detonate)
 			{
 				explode_bombs();
+				full_update();
 				need_refresh = 1;
 			}
 			else if(input == quit)
 			{
-				for(;;) {
-					rval = tolower(msgbox("Are you sure you want to quit? (Yes/No)"));
-					if(rval == 'y' || rval == '\n' || rval == ' ') {
-						curses_stop();
-						exit(0);
-					}
-					else if(rval == 'n') {
-						break;
-					}
+				if(prompt("Are you sure you want to quit? (Yes/No)")) {
+					curses_stop();
+					exit(0);
 				}
 			}
 			else if(input == suicide)
@@ -342,12 +336,12 @@ int main_loop()
 					attrset(A_NORMAL);
 					refresh();
 					mysleep(90000);
-					draw_map(true);
+					draw_map();
 					refresh();
 					mysleep(50000);
 				}
 				erase();
-				draw_map(true);
+				draw_map();
 				draw_status();
 				refresh();
 			}
@@ -392,18 +386,18 @@ int main_loop()
 				}
 				update_delay = UPDATE_DELAY;
 				map[p_y][p_x] = MAP_PLAYER;
+				full_update();
 			}
 
 			for(;;) { // XXX: this is lame, fix it using ticks?
-				draw_map(true);
+				draw_map();
 				draw_status();
 				refresh();
 
 				for(i = 0; i < update_delay; i++)
 				continue;
 
-				changes = update_map();
-				if(changes == 0) {
+				if(update_map() == 0) {
 					break;
 				}
 
@@ -416,7 +410,6 @@ int main_loop()
 				}
 
 			}
-
 		}
 
 		mysleep(mloop_delay);
@@ -425,6 +418,12 @@ int main_loop()
 
 	curses_stop();
 	return EXIT_SUCCESS;
+}
+
+void full_update()
+{
+	while(update_map() != 0);
+	return;
 }
 
 void player_get_item(int y, int x)
@@ -440,52 +439,6 @@ void player_get_item(int y, int x)
 	else if(map[y][x] == MAP_BOMBPK) {
 		map[y][x] = MAP_EMPTY;
 		got_bombs();
-	}
-}
-
-void draw_map(bool draw_player)
-{
-	int x, y;
-
-	for(y = 0; y < MAP_YSIZE; y++) {
-		for(x = 0; x < MAP_XSIZE; x++) {
-			switch(map[y][x])
-			{
-			case MAP_EMPTY:
-				mvaddch(y+1, x, CHR_EMPTY);
-				break;
-			case MAP_DIRT:
-				mvaddch(y+1, x, CHR_DIRT);
-				break;
-			case MAP_STONE:
-				mvaddch(y+1, x, CHR_STONE);
-				break;
-			case MAP_WALL:
-				mvaddch(y+1, x, CHR_WALL);
-				break;
-			case MAP_PLAYER:
-				if(draw_player){mvaddch(y+1, x, CHR_PLAYER);}
-				break;
-			case MAP_MONSTER:
-				mvaddch(y+1, x, CHR_MONSTER);
-				break;
-			case MAP_DIAMOND:
-				mvaddch(y+1, x, CHR_DIAMOND);
-				break;
-			case MAP_MONEY:
-				mvaddch(y+1, x, CHR_MONEY);
-				break;
-			case MAP_BOMB:
-				mvaddch(y+1, x, CHR_BOMB);
-				break;
-			case MAP_BOMBPK:
-				mvaddch(y+1, x, CHR_BOMBPK);
-				break;
-			default:
-				mvaddch(y+1, x, map[y][x]);
-				break;
-			}
-		}
 	}
 }
 
@@ -512,7 +465,7 @@ bool falls(char c)
 	return c == MAP_DIAMOND || c == MAP_MONEY || c == MAP_BOMB || c == MAP_BOMBPK || c == MAP_STONE;
 }
 
-int update_map(void)
+int update_map()
 {
 	int x, y, i;
 
@@ -587,7 +540,7 @@ void create_map(FILE *fp)
 	}
 
 	if(load_map(fp, map) == 1) {
-		bail("Failed to load map!");
+		bail("Unable to load map!");
 	}
 
 	while(update_map() != 0);
@@ -596,23 +549,22 @@ void create_map(FILE *fp)
 
 void player_died(void)
 {
-	int rval;
-
-	--lives;
+	lives--;
 	bombs = 0;
 
 	update_map();
-	draw_map(true);
+	draw_map();
 	draw_status();
 	refresh();
 
 	_beep();
 	mysleep(90000);
+	map[p_y][p_x] = MAP_EMPTY;
 	explode(p_x, p_y, 4, EX_C);
 
 	while(update_map() > 0) {
 		_beep();
-		draw_map(false);
+		draw_map();
 		refresh();
 	}
 
@@ -620,41 +572,33 @@ void player_died(void)
 
 	sleep(1);
 
-	if(lives <= 0) {
-
+	if(lives <= 0)
+	{
 		gameover();
 		sleep(2);
 
-		for(;;) {
-
-			rval = tolower(msgbox("Game over! Play again? (Y/N)"));
-
-			if(rval == 'y' || rval == '\n' || rval == ' ') {
-				make_ready();
-				if(custom_map == 0) {
-					current_map[0] = 0x00;
-				}
-				load_level = true;
-				load_save = false;
-				main_loop();
+		if(prompt("Game over! Play again? (Y/N)")) {
+			make_ready();
+			if(custom_map == 0) {
+				current_map[0] = 0x00;
 			}
-
-			else if(rval == 'n') {
-				/*curses_stop();
-		exit(0);*/
-				game_in_progress = false;
-				char *temp[] = {"",""};
-				main(0, temp);
-			}
-
+			load_level = true;
+			load_save = false;
+			main_loop();
 		}
-
-	} else {
-
+		else
+		{
+			/*curses_stop();
+			exit(0);*/
+			game_in_progress = false;
+			char *temp[] = {"",""};
+			main(0, temp);
+		}
+	} 
+	else {
 		sleep(1);
 		load_level = true;
 		main_loop();
-
 	}
 }
 
@@ -701,10 +645,10 @@ int count_diamonds()
 	int x, y;
 	int num_diamonds = 0;
 
-	for(y = 0; y < MAP_YSIZE; ++y) {
-		for(x = 0; x < MAP_XSIZE; ++x) {
+	for(y = 0; y < MAP_YSIZE; y++) {
+		for(x = 0; x < MAP_XSIZE; x++) {
 			if(map[y][x] == MAP_DIAMOND) {
-				++num_diamonds;
+				num_diamonds++;
 			}
 		}
 	}
@@ -717,10 +661,10 @@ int count_monsters()
 	int x, y;
 	int num_monsters = 0;
 
-	for(y = 0; y < MAP_YSIZE; ++y) {
-		for(x = 0; x < MAP_XSIZE; ++x) {
+	for(y = 0; y < MAP_YSIZE; y++) {
+		for(x = 0; x < MAP_XSIZE; x++) {
 			if(map[y][x] == MAP_MONSTER) {
-				++num_monsters;
+				num_monsters++;
 			}
 		}
 	}
@@ -762,7 +706,7 @@ void got_extralife()
 
 	if(lives < 99) {
 
-		for(i = 0; i < 6; ++i) {
+		for(i = 0; i < 6; i++) {
 			_beep();
 			mysleep(1);
 		}
@@ -800,7 +744,7 @@ void level_done(int x, int y)
 	fade_dissolv();
 	mysleep(30000);
 
-	++level;
+	level++;
 	load_save = false;
 	load_level = true;
 	
@@ -855,12 +799,12 @@ void explode_bombs(void)
 	int bx, by;
 	int playerdied = 0;
 
-	for(y = 0; y < MAP_YSIZE; ++y) {
-		for(x = 0; x < MAP_XSIZE; ++x) {
+	for(y = 0; y < MAP_YSIZE; y++) {
+		for(x = 0; x < MAP_XSIZE; x++) {
 			if(map[y][x] == MAP_BOMB) {
 				_beep();
-				for(by = y - 1; by < y + 2; ++by) {
-					for(bx = x - 1 ; bx < x + 2; ++bx) {
+				for(by = y - 1; by < y + 2; by++) {
+					for(bx = x - 1 ; bx < x + 2; bx++) {
 						if(by == p_y && bx == p_x)
 						playerdied = 1;
 
@@ -1072,7 +1016,7 @@ int save_keys(char *filename)
 int key_repeat(WINDOW *win, int *keys, int input)
 {
 	int i;
-	for(i = 0; i < 13; ++i)
+	for(i = 0; i < 13; i++)
 	{
 		if(keys[i] == input)
 		{
@@ -1086,7 +1030,7 @@ int key_repeat(WINDOW *win, int *keys, int input)
 void draw_keys(WINDOW *win, char *key_names[13], int *keys)
 {
 	int i;
-	for(i = 0; i < 13; ++i)
+	for(i = 0; i < 13; i++)
 	{
 		mvwaddstr(win, i+1, 2, key_names[i]);
 		//extra space in case there was something longer there previously
@@ -1120,7 +1064,7 @@ char return_key(int index)
 
 void set_keys()
 {
-	WINDOW *win = newwin(15, 75, 7, 43);
+	WINDOW *win = newwin(15, 75, 6, 43);
 
 	int active = 0;
 	int input = 0;
@@ -1225,7 +1169,7 @@ void set_keys()
 			erase_arrow(win, active+1, 0);
 			if(active < 12)
 			{
-				++active;
+				active++;
 			}
 			else if(active >= 12)
 			{
@@ -1237,7 +1181,7 @@ void set_keys()
 			erase_arrow(win, active+1, 0);
 			if(active > 0)
 			{
-				--active;
+				active--;
 			}
 			else if(active <= 0)
 			{
@@ -1263,9 +1207,9 @@ void set_keys()
 	
 	save_keys("controls.conf");
 	
-	for(i = 0; i < 15; ++i)
+	for(i = 0; i < 15; i++)
 	{
-		for(j = 0; j < 75; ++j)
+		for(j = 0; j < 75; j++)
 		{
 			mvwaddch(win, i, j, ' ');
 		}

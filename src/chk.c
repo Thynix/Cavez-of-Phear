@@ -42,7 +42,6 @@ void chk_all(void)
   if(chk_file(dir, "gover") == 1) errors++;
   if(chk_file(dir, "htext") == 1) errors++;
   if(chk_file(dir, "spgraf") == 1) errors++;
-  if(chk_file(dir, "tdesc") == 1) errors++;
   if(chk_file(dir, "levels/01") == 1) errors++;
 
   if (errors > 0) {

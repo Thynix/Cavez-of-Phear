@@ -25,17 +25,15 @@
 #define MAP_BOMBPK  7
 #define MAP_MONSTER 8
 
-#define SPECIAL_EMPTY	 0
-#define SPECIAL_DIAMOND  1
-#define SPECIAL_MONEY    2
-#define SPECIAL_BOMB     3
-#define SPECIAL_BOMBPK   4
-
 #define POINTS_DIAMOND   10
 #define POINTS_MONEY     100
 
 #define EX_C CHR_DIAMOND
 #define EX_DELAY 50000
 
-#define MAX_LEVEL 12
+#define MAX_LEVEL 13
+
+#define FILL_POINT 0
+#define FILL_RECT 1
+#define FILL_ALL 2
 

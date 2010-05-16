@@ -11,8 +11,9 @@ int isready(int);
 
 void _beep(void);
 
-void draw_map(bool draw_player);
+void draw_map(void);
 int update_map(void);
+void full_update(void);
 void player_get_item(int y, int x);
 void create_map(FILE *fp);
 void prepare_map();
@@ -36,7 +37,9 @@ int editor_main(char *file);
 int save_map(FILE *fp);
 int load_map(FILE *fp, char map[MAP_YSIZE][MAP_XSIZE]);
 void editor_draw_status(void);
-void editor_draw_map(void);
+void editor_place(void);
+void editor_draw_rect(int my, int mx);
+void editor_save(char *file);
 
 int save_game(FILE *fp, int lives, long int score, long int score_last_extralife, int bombs, int level);
 int load_game(FILE *fp, int *lives, long int *score, long int *score_last_extralife, int *bombs, int *level);
@@ -45,8 +48,11 @@ int load_keys(char *filename);
 void default_keys();
 
 int calc_center(int slen);
-int msgbox(char *meesage);
+int msgbox(char *mesage);
+void draw_box(int width);
+bool prompt(char *message);
 int wait_for_input(void);
+void centered_string(int y, char *message);
 
 int splash(bool first_run);
 int gplot(char *filename, int x_offset, int y_offset, bool ign_space);

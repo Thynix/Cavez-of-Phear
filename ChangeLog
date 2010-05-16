@@ -1,3 +1,6 @@
+CAVEZ of PHEAR 0.6 (11-04-10)
+     - Moved to GitHub at http://github.com/Thynix/Cavez-of-Phear
+
 CAVEZ of PHEAR 0.5 (28-02-07)
      - Falling stones will now kill monsters.
      - Added headers inttypes.h, sys/types.h and string.h

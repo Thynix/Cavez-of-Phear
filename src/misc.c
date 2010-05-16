@@ -1,7 +1,8 @@
 #include <ncurses.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
+#include <ctype.h>
 #include "common.h"
 #include "proto.h"
 
@@ -10,35 +11,52 @@ int calc_center(int slen)
   return (MAP_XSIZE / 2) - (slen / 2);
 }
 
+void centered_string(int y, char *message)
+{
+	mvprintw(y, calc_center((strlen(message))), "%s", message);
+}
+
+bool prompt(char *message)
+{
+	int rval;
+	while(true)
+	{
+		rval = tolower(msgbox(message));
+		if(rval == 'y' || rval == '\n' || rval == ' ') return true;
+		else if(rval == 'n') return false;
+	}
+}
 
 int msgbox(char *message)
 {
   int len = strlen(message);
+  draw_box(len);
+  attrset(COLOR_PAIR(COLOR_WHITE) | A_NORMAL);
+  centered_string(MAP_YSIZE / 2 + 0, message);
+  attrset(A_NORMAL);
+  return wait_for_input();
+}
+
+void draw_box(int width)
+{
   int x;
+  int half = width/2;
 
   attrset(COLOR_PAIR(COLOR_WHITE) | A_BOLD);
 
-  for(x = -5; x < len + 5; x++) {
-    mvaddch(MAP_YSIZE / 2 - 2, (MAP_XSIZE / 2) - (len / 2) + x, '+');
-    mvaddch(MAP_YSIZE / 2 - 1, (MAP_XSIZE / 2) - (len / 2) + x, '+');
-    mvaddch(MAP_YSIZE / 2 + 0, (MAP_XSIZE / 2) - (len / 2) + x, '+');
-    mvaddch(MAP_YSIZE / 2 + 1, (MAP_XSIZE / 2) - (len / 2) + x, '+');
-    mvaddch(MAP_YSIZE / 2 + 2, (MAP_XSIZE / 2) - (len / 2) + x, '+');
+  for(x = -5; x < width + 5; x++) {
+    mvaddch(MAP_YSIZE / 2 - 2, (MAP_XSIZE / 2) - half + x, '+');
+    mvaddch(MAP_YSIZE / 2 - 1, (MAP_XSIZE / 2) - half + x, '+');
+    mvaddch(MAP_YSIZE / 2 + 0, (MAP_XSIZE / 2) - half + x, '+');
+    mvaddch(MAP_YSIZE / 2 + 1, (MAP_XSIZE / 2) - half + x, '+');
+    mvaddch(MAP_YSIZE / 2 + 2, (MAP_XSIZE / 2) - half + x, '+');
   }
 
-  for(x = -3; x < len + 3; x++) {
-    mvaddch(MAP_YSIZE / 2 - 1, (MAP_XSIZE / 2) - (len / 2) + x, ' ');
-    mvaddch(MAP_YSIZE / 2 + 0, (MAP_XSIZE / 2) - (len / 2) + x, ' ');
-    mvaddch(MAP_YSIZE / 2 + 1, (MAP_XSIZE / 2) - (len / 2) + x, ' ');
+  for(x = -3; x < width + 3; x++) {
+    mvaddch(MAP_YSIZE / 2 - 1, (MAP_XSIZE / 2) - half + x, ' ');
+    mvaddch(MAP_YSIZE / 2 + 0, (MAP_XSIZE / 2) - half + x, ' ');
+    mvaddch(MAP_YSIZE / 2 + 1, (MAP_XSIZE / 2) - half + x, ' ');
   }
-
-  attrset(COLOR_PAIR(COLOR_WHITE) | A_NORMAL);
-
-  mvprintw(MAP_YSIZE / 2 + 0, (MAP_XSIZE / 2) - (len / 2), "%s", message);
-
-  attrset(A_NORMAL);
-
-  return wait_for_input();
 }
 
 
