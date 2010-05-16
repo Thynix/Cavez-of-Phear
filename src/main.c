@@ -15,18 +15,15 @@ char current_map[128];
 int p_x;
 int p_y;
 int diamonds_left;
-int lives;
-long int score;
-long int score_last_extralife;
-int bombs;
 int level;
+long int score;
+int bombs;
 int custom_map;
 int need_refresh;
-int option_sound;
+bool option_sound;
 
 bool load_level;
 bool game_in_progress;
-bool load_save;
 
 int drop_bomb;
 int detonate;
@@ -68,8 +65,8 @@ int main(int argc, char **argv)
 
 	curses_start();
 
-	if(COLS < 80 || LINES < 25)
-	bail("Your terminal size must be at least 80x25");
+	if(COLS < 80 || LINES < 24)
+	bail("Your terminal size must be at least 80x24");
 
 	signal(SIGINT, sigint_handler);
 	signal(SIGWINCH, sigwinch_handler);
@@ -94,7 +91,6 @@ int main(int argc, char **argv)
 	if(argv[optind]) {
 		snprintf(current_map, sizeof current_map - 1, "%s", argv[optind]);
 		custom_map = 1;
-		load_save = false;
 		load_level = true;
 		main_loop();
 	}
@@ -104,28 +100,24 @@ int main(int argc, char **argv)
 		
 		do
 		{
-			load_level = false;
-			load_save = false;
 			erase();
 			splashret = splash(game_in_progress);
 			//load the save
 			if(splashret == -1)
 			{
-				load_save = true;
 				load_level = false;
 			}
 			//new game
 			else if(splashret == -2)
 			{
 				make_ready();
-				load_save = false;
 				load_level = true;
 			}
 			//level selected
 			else if(splashret >= 0)
 			{
+				make_ready();
 				level = splashret;
-				load_save = false;
 				load_level = true;
 			}
 			//else do nothing, level is unchanged and it will not load a level or save
@@ -138,9 +130,7 @@ int main(int argc, char **argv)
 void make_ready(void)
 {
 	level = 1;
-	lives = 3;
 	score = 0;
-	score_last_extralife = 0;
 	bombs = 0;
 	need_refresh = 0;
 }
@@ -152,7 +142,7 @@ void load_game_wrapper(void)
 		create_map(fp);
 		update_player_position();
 		diamonds_left = count_diamonds();
-		if(load_game(fp, &lives, &score, &score_last_extralife, &bombs, &level) == 1)
+		if(load_game(fp, &score, &bombs, &level) == 1)
 		{
 			msgbox("Save file invalid!");
 		}
@@ -200,14 +190,14 @@ int main_loop()
 			bail("Unable to open level!");
 		}
 	}
-	else if(load_save)
+	else
 	{
 		load_game_wrapper();
 	}
 
 	game_in_progress = true;
 
-	while(update_map() > 0);
+	full_update();
 	draw_map();
 	draw_status();
 	refresh();
@@ -305,7 +295,7 @@ int main_loop()
 				if(fp != NULL)
 				{
 					save_map(fp);
-					save_game(fp, lives, score, score_last_extralife, bombs, level);
+					save_game(fp, score, bombs, level);
 				}
 				fclose(fp);
 			}
@@ -315,11 +305,8 @@ int main_loop()
 			}
 			else if(input == toggle_sound)
 			{
-				if(option_sound == 0) {
-					option_sound = 1;
-					_beep();
-				}
-				else option_sound = 0;
+				option_sound = !option_sound;
+				_beep();
 			}
 			else if(input == pause_key)
 			{
@@ -423,7 +410,6 @@ int main_loop()
 void full_update()
 {
 	while(update_map() != 0);
-	return;
 }
 
 void player_get_item(int y, int x)
@@ -543,13 +529,12 @@ void create_map(FILE *fp)
 		bail("Unable to load map!");
 	}
 
-	while(update_map() != 0);
+	full_update();
 }
 
 
 void player_died(void)
 {
-	lives--;
 	bombs = 0;
 
 	update_map();
@@ -569,37 +554,31 @@ void player_died(void)
 	}
 
 	_beep();
-
 	sleep(1);
+	if(level_of_save() == level) load_level = false;
+	else load_level = true;
+	main_loop();
+}
 
-	if(lives <= 0)
+int level_of_save(void)
+{
+	int i;
+	FILE *fp = fopen("saved", "r");
+	if(fp != NULL)
 	{
-		gameover();
-		sleep(2);
-
-		if(prompt("Game over! Play again? (Y/N)")) {
-			make_ready();
-			if(custom_map == 0) {
-				current_map[0] = 0x00;
-			}
-			load_level = true;
-			load_save = false;
-			main_loop();
-		}
-		else
+		for(i = 0; i < MAP_YSIZE*MAP_XSIZE; i++)
 		{
-			/*curses_stop();
-			exit(0);*/
-			game_in_progress = false;
-			char *temp[] = {"",""};
-			main(0, temp);
+			fgetc(fp);
 		}
-	} 
-	else {
-		sleep(1);
-		load_level = true;
-		main_loop();
 	}
+	i = fscanf(fp, "%d", &i);
+	i = fscanf(fp, "%d", &i);
+	if(fscanf(fp, "%d", &i) == EOF)
+	{
+		i = -1;
+		msgbox("Error in save file, unable to load.");
+	}
+	return i;
 }
 
 
@@ -626,7 +605,7 @@ void explode(int x, int y, int len, int chr)
 		refresh();
 		mysleep(EX_DELAY);
 	}
-	//Refresh level to initial state so diamonds don't stick around.
+	//Refresh level to initial state so this doesn't stick around.
 	load_level = true;
 }
 
@@ -676,10 +655,8 @@ int count_monsters()
 void got_diamond()
 {
 	_beep();
-	--diamonds_left;
+	diamonds_left--;
 	score += POINTS_DIAMOND;
-	if(score >= score_last_extralife + 1000)
-	got_extralife();
 }
 
 
@@ -687,8 +664,6 @@ void got_money()
 {
 	_beep();
 	score += POINTS_MONEY;
-	if(score >= score_last_extralife + 1000)
-	got_extralife();
 }
 
 void got_bombs()
@@ -697,25 +672,6 @@ void got_bombs()
 	bombs += 3;
 	if (bombs > 99)
 	bombs = 99;
-}
-
-
-void got_extralife()
-{
-	int i;
-
-	if(lives < 99) {
-
-		for(i = 0; i < 6; i++) {
-			_beep();
-			mysleep(1);
-		}
-
-		lives++;
-		score_last_extralife = score;
-		draw_status();
-
-	}
 }
 
 void level_done(int x, int y)
@@ -745,7 +701,6 @@ void level_done(int x, int y)
 	mysleep(30000);
 
 	level++;
-	load_save = false;
 	load_level = true;
 	
 	main_loop();
@@ -754,41 +709,32 @@ void level_done(int x, int y)
 
 void draw_status(void)
 {
-	attrset(COLOR_PAIR(COLOR_GREEN));
-	mvprintw(0, calc_center(strlen("CAVEZ of PHEAR ("VERSION")")), "CAVEZ of PHEAR ("VERSION")");
+	attrset(COLOR_PAIR(COLOR_MAGENTA) | A_BOLD);
+	mvprintw(23, 0, "SCORE:");
+	attrset(COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+	mvprintw(23, 7, "%d", score);
+	
+	attrset(COLOR_PAIR(COLOR_MAGENTA) | A_BOLD);
+	mvprintw(23, 15, "DIAMONDS LEFT:");
+	attrset(COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+	mvprintw(23, 30, "%02d", diamonds_left);
 
 	attrset(COLOR_PAIR(COLOR_MAGENTA) | A_BOLD);
-	mvprintw(0, 0, "DIAMONDS LEFT:");
+	mvprintw(23, 40, "BOMBS:");
 	attrset(COLOR_PAIR(COLOR_WHITE) | A_BOLD);
-	mvprintw(0, 15, "%02d", diamonds_left);
-	//mvprintw(0, 55, "p: (%02d, %02d)", p_y, p_x);
+	mvprintw(23, 47, "%02d", bombs);
 
 	attrset(COLOR_PAIR(COLOR_MAGENTA) | A_BOLD);
-	mvprintw(0, 71, "LIVES:");
+	mvprintw(23, 71, "LEVEL:");
 	attrset(COLOR_PAIR(COLOR_WHITE) | A_BOLD);
-	mvprintw(0, 78, "%02d", lives);
-
-	attrset(COLOR_PAIR(COLOR_MAGENTA) | A_BOLD);
-	mvprintw(24, 0, "SCORE:");
-	attrset(COLOR_PAIR(COLOR_WHITE) | A_BOLD);
-	mvprintw(24, 7, "%d", score);
-
-	attrset(COLOR_PAIR(COLOR_MAGENTA) | A_BOLD);
-	mvprintw(24, 36, "BOMBS:");
-	attrset(COLOR_PAIR(COLOR_WHITE) | A_BOLD);
-	mvprintw(24, 43, "%02d", bombs);
-
-	attrset(COLOR_PAIR(COLOR_MAGENTA) | A_BOLD);
-	mvprintw(24, 71, "LEVEL:");
-	attrset(COLOR_PAIR(COLOR_WHITE) | A_BOLD);
-	mvprintw(24, 78, "%02d", level);
+	mvprintw(23, 78, "%02d", level);
 
 	attrset(A_NORMAL);
 }
 
 void _beep(void)
 {
-	if(option_sound == 1) {
+	if(option_sound) {
 		beep();
 	}
 }
@@ -797,7 +743,7 @@ void explode_bombs(void)
 {
 	int x, y;
 	int bx, by;
-	int playerdied = 0;
+	bool playerdied = false;
 
 	for(y = 0; y < MAP_YSIZE; y++) {
 		for(x = 0; x < MAP_XSIZE; x++) {
@@ -806,7 +752,7 @@ void explode_bombs(void)
 				for(by = y - 1; by < y + 2; by++) {
 					for(bx = x - 1 ; bx < x + 2; bx++) {
 						if(by == p_y && bx == p_x)
-						playerdied = 1;
+						playerdied = true;
 
 						if(map[by][bx] != MAP_WALL && map[by][bx] != MAP_DIAMOND) {
 							map[by][bx] = MAP_EMPTY;
@@ -821,7 +767,7 @@ void explode_bombs(void)
 
 	mysleep(20000);
 
-	if (playerdied == 1)
+	if (playerdied)
 	player_died();
 
 	return;
@@ -1064,7 +1010,7 @@ char return_key(int index)
 
 void set_keys()
 {
-	WINDOW *win = newwin(15, 75, 6, 43);
+	WINDOW *win = newwin(15, 75, 5, 43);
 
 	int active = 0;
 	int input = 0;

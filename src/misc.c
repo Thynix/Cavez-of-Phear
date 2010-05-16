@@ -32,7 +32,7 @@ int msgbox(char *message)
   int len = strlen(message);
   draw_box(len);
   attrset(COLOR_PAIR(COLOR_WHITE) | A_NORMAL);
-  centered_string(MAP_YSIZE / 2 + 0, message);
+  centered_string(MAP_YSIZE / 2, message);
   attrset(A_NORMAL);
   return wait_for_input();
 }
@@ -76,7 +76,8 @@ void fade_dissolv(void)
   int i;
 
   for(i = 0; i < 1000*10; i++) {
-    mvaddch(rand() % (MAP_YSIZE + 2), rand() % MAP_XSIZE, ' ');
+  	//TODO: No repeats
+    mvaddch(rand() % (MAP_YSIZE+1), rand() % MAP_XSIZE, ' ');
     refresh();
   }
 

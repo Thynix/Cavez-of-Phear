@@ -10,13 +10,16 @@ USE THE EDITOR
 
   Keys 0-9 to select object placement.
   Arrow keys to move.
-  C to Save As.
+  V to Save As.
   Enter or space to place a corner of the rectangle, a point, or fill.
   Escape to cancel the current rectangle.
   F or TAB to cycle through fill modes: point, rectangle, and all.
   P to enable physics with the option of keeping the results.
   S to save.
   Q to quit.
+  
+  If no player marker exists, one will be placed in the upper left. 
+  If a player marker is placed, the previous is replaced with wall.
 
 PLAY YOUR MAP
 

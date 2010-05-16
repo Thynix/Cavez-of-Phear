@@ -41,8 +41,9 @@ void editor_place(void);
 void editor_draw_rect(int my, int mx);
 void editor_save(char *file);
 
-int save_game(FILE *fp, int lives, long int score, long int score_last_extralife, int bombs, int level);
-int load_game(FILE *fp, int *lives, long int *score, long int *score_last_extralife, int *bombs, int *level);
+int level_of_save(void);
+int save_game(FILE *fp, long int score, int bombs, int level);
+int load_game(FILE *fp, long int *score, int *bombs, int *level);
 int save_keys(char *filename);
 int load_keys(char *filename);
 void default_keys();

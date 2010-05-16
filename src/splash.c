@@ -28,15 +28,15 @@ int splash(bool passed_in_progress)
 
   attrset(COLOR_PAIR(COLOR_CYAN));
   for(x = 0; x < MAP_XSIZE; x++) {
-    mvaddch(MAP_YSIZE - 2, x, ':');
+    mvaddch(MAP_YSIZE - 3, x, ':');
     mvaddch(0, x, ':');
   }
 
   attrset(COLOR_PAIR(COLOR_MAGENTA));
 
-  mvprintw(MAP_YSIZE - 1, 0, "CAVEZ of PHEAR Copyright 2003-2007 Tom Rune Flo <tom@x86.no>");
-  mvprintw(MAP_YSIZE, 0, "Contributions by Steve Dougherty <steve@asksteved.com>");
-  mvprintw(MAP_YSIZE + 1, 0, "Distributed under the terms of the GPL license");
+  mvprintw(MAP_YSIZE - 2, 0, "CAVEZ of PHEAR Copyright 2003-2007 Tom Rune Flo <tom@x86.no>");
+  mvprintw(MAP_YSIZE -1, 0, "Contributions by Steve Dougherty <steve@asksteved.com>");
+  mvprintw(MAP_YSIZE, 0, "Distributed under the terms of the GPL license");
 
   if(!game_in_progress){
   	refresh();
@@ -48,46 +48,36 @@ int splash(bool passed_in_progress)
   if(!game_in_progress)
   {
 	  for(x = -40; x < 0; x++) {
-	    gplot("spgraf", x, 1, false);
+	    gplot("spgraf", x, 0, false);
 	    refresh();
 	    mysleep(7000);
 	  }
   }
-  else gplot("spgraf", 0, 1, false);
+  else gplot("spgraf", 0, 0, false);
 
   return menu();
 }
 
 
-void gameover(void)
-{
-  fade_dissolv();
-
-  attrset(COLOR_PAIR(COLOR_WHITE) | A_BOLD);
-  gplot("gover", 18, 2, 1);
-
-  refresh();
-
-}
-
 void draw_menu_items()
 {
 	if(game_in_progress)
 	{
-		mvaddstr(6, 45, "NEW GAME");
-		mvaddstr(8, 45, "CONTINUE GAME");
+		mvaddstr(5, 45, "NEW GAME");
+		mvaddstr(7, 45, "CONTINUE GAME");
 	}
 	else if(!game_in_progress)
 	{
-		mvaddstr(8, 45, "NEW GAME");
+		mvaddstr(7, 45, "NEW GAME");
 	}
-	mvaddstr(10, 45, "LOAD GAME");
-	mvaddstr(12, 45, "LEVEL SELECT");
-	mvaddstr(14, 45, "SET CONTROLS");
-	mvaddstr(16, 45, "HELP");
-	mvaddstr(18, 45, "QUIT");
-	mvaddstr(20, 45, "EDITOR");
+	mvaddstr(9, 45, "LOAD GAME");
+	mvaddstr(11, 45, "LEVEL SELECT");
+	mvaddstr(13, 45, "SET CONTROLS");
+	mvaddstr(15, 45, "HELP");
+	mvaddstr(17, 45, "QUIT");
+	mvaddstr(19, 45, "EDITOR");
 }
+
 
 int menu(void)
 {
@@ -101,7 +91,7 @@ int menu(void)
 
 	int input = -1;
 
-	draw_arrow(stdscr, 2*active+6, 43);
+	draw_arrow(stdscr, 2*active+5, 43);
 	draw_menu_items();
 	refresh();
 
@@ -111,7 +101,7 @@ int menu(void)
 		flushinp();
 		//this will erase when it refreshes later, even if it's in a window, so
 		//this space is reserved unless there is a refresh directly after this
-		erase_arrow(stdscr, 2*active+6, 43);
+		erase_arrow(stdscr, 2*active+5, 43);
 		switch(input)
 		{
 			case KEY_UP:
@@ -119,7 +109,7 @@ int menu(void)
 				{
 					active--;
 				}
-				else if(active == top)
+				else if(active <= top)
 				{
 					active=bottom;
 				}
@@ -129,7 +119,7 @@ int menu(void)
 				{
 					active++;
 				}
-				else if(active == bottom)
+				else if(active >= bottom)
 				{
 					active=top;
 				}
@@ -140,47 +130,50 @@ int menu(void)
 			case 27:
 				bail("Thanks for playing!");
 			break;
-			case '\n':
-				switch(active)
+			default:
+				if(input == '\n' || input == ' ')
 				{
-					case 0:
-						return -2;
-						break;
-					case 1:
-						if(game_in_progress)
-						{
-							return -3;
-						}
-						return -2;
-						break;
-					case 2:
-						return -1;
-						break;
-					case 3:
-						input = level_select();
-						if(input != -1)
-						{
-							return input;
-						}
-						draw_menu_items();
-						break;
-					case 4:
-						set_keys();
-						draw_menu_items();
-						break;
-					case 5:
-						draw_help();
-						draw_menu_items();
-						break;
-					case 6:
-						bail("Thanks for playing!");
-						break;
-					case 7:
-						editor_main("newmap");
-						break;
+					switch(active)
+					{
+						case 0:
+							return -2;
+							break;
+						case 1:
+							if(game_in_progress)
+							{
+								return -3;
+							}
+							return -2;
+							break;
+						case 2:
+							return -1;
+							break;
+						case 3:
+							input = level_select();
+							if(input != -1)
+							{
+								return input;
+							}
+							draw_menu_items();
+							break;
+						case 4:
+							set_keys();
+							draw_menu_items();
+							break;
+						case 5:
+							draw_help();
+							draw_menu_items();
+							break;
+						case 6:
+							bail("Thanks for playing!");
+							break;
+						case 7:
+							editor_main("newmap");
+							break;
+					}
 				}
 		}
-		draw_arrow(stdscr, 2*active+6, 43);
+		draw_arrow(stdscr, 2*active+5, 43);
 		refresh();
 	}
 }
@@ -198,11 +191,11 @@ void draw_arrow(WINDOW *win, int y, int x)
 void draw_help()
 {
 	char input = ' ';
-	WINDOW *win = newwin(15, 37, 6, 43);
+	WINDOW *win = newwin(15, 37, 5, 43);
 	mvwaddstr(win, 1, 2, "You:   Dirt:   Rocks:  ");
 	mvwaddstr(win, 2, 2, "Diamond:   Money:   Bombs:  ");
 	mvwaddstr(win, 3, 2, "Monsters:  ");
-	mvwaddstr(win, 4, 2, "At any time ESC to return to menu.");
+	mvwaddstr(win, 4, 2, "ESC from ingame to return to menu.");
 	
 	mvwaddch(win, 1, 7, CHR_PLAYER);
 	mvwaddch(win, 1, 15, CHR_DIRT);
@@ -233,7 +226,7 @@ void draw_help()
 
 int level_select()
 {
-	WINDOW *win = newwin(15, 37, 6, 43);
+	WINDOW *win = newwin(15, 37, 5, 43);
 	int i;
 	int active = 1;
 	mvwaddstr(win, 0, 0, "Choose a level, press enter to start.");

@@ -48,8 +48,8 @@ int editor_main(char *file)
   curses_start();
   curs_set(1);
 
-  if(COLS < 80 || LINES < 25)
-    bail("Your terminal size must be at least 80x25");
+  if(COLS < 80 || LINES < 24)
+    bail("Your terminal size must be at least 80x24");
 
   signal(SIGINT, sigint_handler);
   signal(SIGWINCH, sigwinch_handler);
@@ -93,7 +93,7 @@ int editor_main(char *file)
     }
 
     draw_map();
-    editor_draw_rect(y-1, x);
+    editor_draw_rect(y, x);
     refresh();
 
     input = mvgetch(y, x);
@@ -106,7 +106,7 @@ int editor_main(char *file)
     	unsaved_changes = true;
 	if(fill_mode == FILL_POINT){ 
 		xp1 = x;
-		yp1 = y-1;
+		yp1 = y;
 		//Get rid of remnants of rectangle
 		xp2 = 0;
 		yp2 = 0;
@@ -116,12 +116,12 @@ int editor_main(char *file)
 		if(xp1 == 0 && yp1 == 0)
 		{
 			xp1 = x;
-			yp1 = y-1;
+			yp1 = y;
 		}
 		else if(xp2 == 0 && yp2 == 0)
 		{	
 			xp2 = x;
-			yp2 = y-1;
+			yp2 = y;
 			editor_place();
 		}
 	}
@@ -129,7 +129,7 @@ int editor_main(char *file)
 	{
 		//In case user is placing MAP_PLAYER which must be placed at a single point anyway
 		xp1 = x;
-		yp1 = y-1;
+		yp1 = y;
 		editor_place();
 	}
       
@@ -141,7 +141,7 @@ int editor_main(char *file)
     	centered_string(MAP_YSIZE / 2 - 1, "Enter filename:");
     	echo();
     	move(MAP_YSIZE / 2, 25);
-    	char temp[80];
+    	char temp[128];
     	getstr(temp);
     	file = temp;
     	noecho();
@@ -166,10 +166,10 @@ int editor_main(char *file)
     			}
     		}
     	}
-    	
-    	while(update_map() != 0);
+    	curs_set(0);
+    	full_update();
     	draw_map();
-    	centered_string(24, "Press any key.");
+    	centered_string(23, "Press any key.");
     	refresh();
     	getch();
     	if(!prompt("Keep level this way? (Yes/No)"))
@@ -180,7 +180,9 @@ int editor_main(char *file)
 	    		}
     		}
     	}
+    	else unsaved_changes = true;
     	map[p_y][p_x] = MAP_PLAYER;
+    	curs_set(1);
     }
     else if(input == 27)
     {
@@ -224,11 +226,77 @@ int editor_main(char *file)
           curs_set(1);
         }
     }
+    else if(tolower(input) == 'i') {
+	    curs_set(0);
+	    char* filltype = "";
+	  switch(fill_mode)
+	  {
+	  	case FILL_POINT:
+	  		filltype = "Fill mode: Point";
+	  		break;
+	  	case FILL_RECT:
+	  		filltype = "Fill mode: Rectangle";
+	  		break;
+	  	case FILL_ALL:
+	  		filltype = "Fill mode: All";
+	  		break;
+  	}
+  	draw_box(20);
+  	attrset(COLOR_PAIR(COLOR_WHITE));
+  	centered_string(MAP_YSIZE/2-1, filltype);
+  	char str[80];
+  	sprintf(str, "*: %d $: %d SCORE: %d   ", count_object(MAP_DIAMOND), 
+	count_object(MAP_MONEY), (count_object(MAP_DIAMOND) * POINTS_DIAMOND) + 
+	(count_object(MAP_MONEY) * POINTS_MONEY));
+	centered_string(MAP_YSIZE/2, str);
+	centered_string(MAP_YSIZE/2+1, "Active object: ");
+	switch(obj)
+	{
+		case MAP_EMPTY:
+			mvaddstr(12, 48, "EMPTY");
+			break;
+
+		case MAP_DIRT:
+			mvaddch(12, 48, CHR_DIRT);
+			break;
+
+		case MAP_WALL:
+			mvaddch(12, 48, CHR_WALL);
+			break;
+
+		case MAP_STONE:
+			mvaddch(12, 48, CHR_STONE);
+			break;
+	
+		case MAP_DIAMOND:
+			mvaddch(12, 48, CHR_DIAMOND);
+			break;
+
+		case MAP_MONEY:
+			mvaddch(12, 48, CHR_MONEY);
+			break;
+
+		case MAP_BOMBPK:
+			mvaddch(12, 48, CHR_BOMBPK);
+			break;
+
+		case MAP_MONSTER:
+			mvaddch(12, 48, CHR_MONSTER);
+			break;
+
+		case MAP_PLAYER:
+			mvaddch(12, 48, CHR_PLAYER);
+			break;	
+	}
+  	refresh();
+  	getch();
+  	curs_set(1);
+    }
     
-    if(y < 2) y = MAP_YSIZE - 1;
-    if(y > MAP_YSIZE - 1) y = 2;
-    if(x < 2) x = MAP_XSIZE - 3;
-    if(x > MAP_XSIZE - 3) x = 2;
+    if(y < 1) y = MAP_YSIZE - 2;
+    else if(y > MAP_YSIZE - 2) y = 1;
+    else if(x < 2) x = MAP_XSIZE - 3;
+    else if(x > MAP_XSIZE - 3) x = 2;
 
     editor_draw_status();
 	}
@@ -280,7 +348,7 @@ void editor_place()
 		{
 			for(x = 0; x < MAP_XSIZE; x++)
 			{
-				if(map[y][x] == MAP_PLAYER) map[y][x] = MAP_EMPTY;
+				if(map[y][x] == MAP_PLAYER) map[y][x] = MAP_WALL;
 			}
 		}
 		map[yp1][xp1] = MAP_PLAYER;
@@ -305,16 +373,16 @@ void editor_place()
 				}
 				break;
 			case FILL_ALL:
-				for(y = 0; y < MAP_YSIZE; y++)
+				for(y = 1; y < MAP_YSIZE-1; y++)
 				{
-					for(x = 0; x < MAP_XSIZE; x++)
+					for(x = 2; x < MAP_XSIZE-2; x++)
 					{
 						map[y][x] = obj;
 					}
 				}
 				break;
 			default:
-				bail("fill_mode is an unknown value!");
+				msgbox("fill_mode is an unknown value!");
 				break;
 		}
 	}
@@ -342,7 +410,7 @@ void editor_draw_rect(int my, int mx)
 		{
 			for(x = xp1; x != x2+xinc; x+=xinc)
 			{
-				mvaddch(y+1, x, '~');
+				mvaddch(y, x, '~');
 			}
 		}
 	}
@@ -354,15 +422,15 @@ void draw_map(void)
 
   for(y = 0; y < MAP_YSIZE; y++) {
     for(x = 0; x < MAP_XSIZE; x++) {
-      if(map[y][x] == MAP_EMPTY)   mvaddch(y + 1, x, CHR_EMPTY);
-      else if(map[y][x] == MAP_DIRT)    mvaddch(y + 1, x, CHR_DIRT);
-      else if(map[y][x] == MAP_WALL)    mvaddch(y + 1, x, CHR_WALL);
-      else if(map[y][x] == MAP_PLAYER)  mvaddch(y + 1, x, CHR_PLAYER);
-      else if(map[y][x] == MAP_STONE)   mvaddch(y + 1, x, CHR_STONE);
-      else if(map[y][x] == MAP_DIAMOND) mvaddch(y + 1, x, CHR_DIAMOND);
-      else if(map[y][x] == MAP_MONEY)   mvaddch(y + 1, x, CHR_MONEY);
-      else if(map[y][x] == MAP_BOMBPK)  mvaddch(y + 1, x, CHR_BOMBPK);
-      else if(map[y][x] == MAP_MONSTER) mvaddch(y + 1, x, CHR_MONSTER);
+      if(map[y][x] == MAP_EMPTY)   mvaddch(y, x, CHR_EMPTY);
+      else if(map[y][x] == MAP_DIRT)    mvaddch(y, x, CHR_DIRT);
+      else if(map[y][x] == MAP_WALL)    mvaddch(y, x, CHR_WALL);
+      else if(map[y][x] == MAP_PLAYER)  mvaddch(y, x, CHR_PLAYER);
+      else if(map[y][x] == MAP_STONE)   mvaddch(y, x, CHR_STONE);
+      else if(map[y][x] == MAP_DIAMOND) mvaddch(y, x, CHR_DIAMOND);
+      else if(map[y][x] == MAP_MONEY)   mvaddch(y, x, CHR_MONEY);
+      else if(map[y][x] == MAP_BOMBPK)  mvaddch(y, x, CHR_BOMBPK);
+      else if(map[y][x] == MAP_MONSTER) mvaddch(y, x, CHR_MONSTER);
     }
   }
 
@@ -414,90 +482,56 @@ int count_object(int object)
 
 void editor_draw_status(void)
 {
-  char* filltype = "";
-  switch(fill_mode)
-  {
-  	case FILL_POINT:
-  		filltype = "FILL:POINT";
-  		break;
-  	case FILL_RECT:
-  		filltype = "FILL: RECT";
-  		break;
-  	case FILL_ALL:
-  	filltype = "FILL:  ALL";
-  		break;
-  }
-  attrset(COLOR_PAIR(COLOR_GREEN));
-  centered_string(0, "CAVEZ of PHEAR "VERSION" EDITOR");
-
   attrset(COLOR_PAIR(COLOR_MAGENTA));
-  mvprintw(24, 0, "0 EMPTY  1 #  2 O  3 *  4 :  5 $  6    7 M  8 Z  s SV q QT c SVAS f FL p PHY");
-  mvaddch(24, 11, CHR_DIRT);
-  mvaddch(24, 16, CHR_STONE);
-  mvaddch(24, 21, CHR_DIAMOND);
-  mvaddch(24, 26, CHR_WALL);
-  mvaddch(24, 31, CHR_MONEY);
-  mvaddch(24, 36, CHR_BOMBPK);
-  mvaddch(24, 41, CHR_MONSTER);
-  mvaddch(24, 46, CHR_PLAYER);
-
-  attrset(COLOR_PAIR(COLOR_MAGENTA) | A_NORMAL);
-  mvprintw(0, 70, filltype);
-  mvprintw(0, 60, "OBJECT:");
+  mvprintw(23, 0, "0 CLR  1 #  2 O  3 *  4 :  5 $  6    7 M  8 Z  Save Quit saVeas Fill Phy Info");
+  mvaddch(23, 9, CHR_DIRT);
+  mvaddch(23, 14, CHR_STONE);
+  mvaddch(23, 19, CHR_DIAMOND);
+  mvaddch(23, 24, CHR_WALL);
+  mvaddch(23, 29, CHR_MONEY);
+  mvaddch(23, 34, CHR_BOMBPK);
+  mvaddch(23, 39, CHR_MONSTER);
+  mvaddch(23, 44, CHR_PLAYER);
 
   switch(obj) {
 
     case MAP_EMPTY:
-      mvaddch(0, 68, CHR_EMPTY);
-      mvaddch(24, 0, '0' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      mvaddch(23, 0, '0' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
       break;
 
     case MAP_DIRT:
-      mvaddch(0, 68, CHR_DIRT);
-      mvaddch(24, 9, '1' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      mvaddch(23, 7, '1' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
       break;
 
     case MAP_WALL:
-      mvaddch(0, 68, CHR_WALL);
-      mvaddch(24, 24, '4' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      mvaddch(23, 22, '4' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
       break;
 
     case MAP_STONE:
-      mvaddch(0, 68, CHR_STONE);
-      mvaddch(24, 14, '2' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      mvaddch(23, 12, '2' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
       break;
 
     case MAP_DIAMOND:
-      mvaddch(0, 68, CHR_DIAMOND);
-      mvaddch(24, 19, '3' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      mvaddch(23, 17, '3' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
       break;
 
     case MAP_MONEY:
-      mvaddch(0, 68, CHR_MONEY);
-      mvaddch(24, 29, '5' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      mvaddch(23, 27, '5' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
       break;
 
     case MAP_BOMBPK:
-      mvaddch(0, 68, CHR_BOMBPK);
-      mvaddch(24, 36, '6' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      mvaddch(23, 32, '6' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
       break;
 
     case MAP_MONSTER:
-      mvaddch(0, 68, CHR_MONSTER);
-      mvaddch(24, 39, '7' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      mvaddch(23, 37, '7' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
       break;
 
     case MAP_PLAYER:
-      mvaddch(0, 68, CHR_PLAYER);
-      mvaddch(24, 44, '8' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      mvaddch(23, 42, '8' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
       break;
 
   }
-
-  attrset(COLOR_PAIR(COLOR_MAGENTA));
-  mvprintw(0, 0, "*: %d $: %d SCORE: %d   ", count_object(MAP_DIAMOND), 
-  count_object(MAP_MONEY), (count_object(MAP_DIAMOND) * POINTS_DIAMOND) + 
-  (count_object(MAP_MONEY) * POINTS_MONEY));
 
   attrset(A_NORMAL);
 }
