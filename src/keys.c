@@ -71,6 +71,7 @@ void default_keys()
 	SetKey(BIND_QUIT, 'q', 'q');
 	SetKey(BIND_SAVE, 'o', 'o');
 	SetKey(BIND_LOAD, 'l', 'l');
+	save_keys("controls.conf");
 }
 
 void key_repeat(int *key, int *index)
