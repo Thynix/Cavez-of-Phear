@@ -6,13 +6,13 @@ Diamond - * - 10 points
 Money - $ - 100 points
 Extra life every 1000 points.
 
-Movement - Arrow keys or numpad
+Movement - Arrow keys, numpad, or WSAD
 
 Toggle mute - M
-Show position - W
-Suicide - K
-Quicksave - S
-Quickload - L
+Show position - F
+Restart level - R
+Save - O
+Load - L
 Pause - P
 
 Bombs - %

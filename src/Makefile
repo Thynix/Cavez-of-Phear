@@ -1,4 +1,4 @@
-OBJS = main.o frame.o isready.o savegame.o loadgame.o loadmap.o misc.o gplot.o splash.o chk.o editor.o
+OBJS = main.o frame.o isready.o savegame.o loadgame.o loadmap.o misc.o gplot.o splash.o chk.o editor.o keys.o
 
 DESTDIR = ..
 

@@ -187,7 +187,7 @@ void keys_menu()
 	int bottom = NUM_KEYS-1;
 	int input = 0;
 	WINDOW *win = newwin(15, 37, 5, 43);
-	mvwaddstr(win, 14, 0, "Q: Save and Quit. D: Restore Defaults");
+	mvwaddstr(win, 14, 0, "Q: Save & Return. D: Restore Defaults");
 	draw_arrow(win, active+1, 0);
 	while(true)
 	{

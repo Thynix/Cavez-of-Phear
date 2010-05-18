@@ -73,17 +73,36 @@ void fade_dissolv(void)
 		//spiral
 		//close in from edges?
 		//diagonal lines in to center, then back and forth along resulting triangles from center to edges
-  int i;
-
-  for(i = 0; i < 1000*10; i++) {
-  	//TODO: No repeats
-    mvaddch(rand() % (MAP_YSIZE+1), rand() % MAP_XSIZE, ' ');
-    refresh();
-  }
-
-  erase();
-  refresh();
-
+	int i = 0, j, k, m;
+	//Fill with all positions with no repeats
+	int pos[MAP_YSIZE*MAP_XSIZE][2];
+	for(j = 0; j < MAP_YSIZE; j++)
+	{
+		for(k = 0; k < MAP_XSIZE; k++)
+		{
+			pos[i][0] = j;
+			pos[i][1] = k;
+			i++;
+		}
+	}
+	//Knuth-Fisher–Yates shuffle
+	for(i = MAP_YSIZE*MAP_XSIZE-1; i > 0; i--)
+	{
+		j = rand() % i+1;
+		k = pos[i][0];
+		m = pos[i][1];
+		pos[i][0] = pos[j][0];
+		pos[i][1] = pos[j][1];
+		pos[j][0] = k;
+		pos[j][1] = m;
+	}
+	for(i = 0; i < MAP_YSIZE*MAP_XSIZE; i++) {
+		mvaddch(pos[i][0], pos[i][1], ' ');
+		mysleep(100);
+		refresh();
+	}
+	
+	return;
 }
 
 
@@ -94,4 +113,28 @@ void mysleep(long nsecs)
   ts.tv_nsec = nsecs * 1000;
   nanosleep(&ts, NULL);
   return;
+}
+
+void erase_window(WINDOW *win, int height, int width)
+{
+	int i, j;
+	for(i = 0; i < height; ++i)
+	{
+		for(j = 0; j < width; j++)
+		{
+			mvwaddch(win, i, j, ' ');
+		}
+	}
+	wrefresh(win);
+	delwin(win);
+}
+
+void erase_arrow(WINDOW *win, int y, int x)
+{
+	mvwaddstr(win, y, x, "  ");
+}
+
+void draw_arrow(WINDOW *win, int y, int x)
+{
+	mvwaddstr(win, y, x, ">>");
 }

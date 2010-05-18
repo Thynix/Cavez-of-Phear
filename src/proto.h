@@ -1,4 +1,7 @@
-int main_loop();
+#include "common.h"
+#define press(key) pressed(key, input)
+
+int main_loop(void);
 void make_ready(void);
 
 void curses_start(void);
@@ -16,22 +19,17 @@ int update_map(void);
 void full_update(void);
 void player_get_item(int y, int x);
 void create_map(FILE *fp);
-void prepare_map();
-void fix_map();
 void draw_status(void);
 
 void player_died(void);
 void explode(int x, int y, int len, int chr);
 void explode_put(int x, int y, int chr);
 
-int count_diamonds();
-int count_monsters();
-void got_diamond();
-void got_money();
-void got_extralife();
+int count(char target);
+void got_diamond(void);
+void got_money(void);
+void got_bombs(void);
 void level_done(int x, int y);
-
-void got_bombs();
 
 int editor_main(char *file);
 int save_map(FILE *fp);
@@ -40,13 +38,14 @@ void editor_draw_status(void);
 void editor_place(void);
 void editor_draw_rect(int my, int mx);
 void editor_save(char *file);
+void editor_draw_filltype();
 
 int level_of_save(void);
 int save_game(FILE *fp, long int score, int bombs, int level);
 int load_game(FILE *fp, long int *score, int *bombs, int *level);
 int save_keys(char *filename);
 int load_keys(char *filename);
-void default_keys();
+void default_keys(void);
 
 int calc_center(int slen);
 int msgbox(char *mesage);
@@ -56,6 +55,7 @@ int wait_for_input(void);
 void centered_string(int y, char *message);
 
 int splash(bool first_run);
+void splash_loop(void);
 int gplot(char *filename, int x_offset, int y_offset, bool ign_space);
 void gameover(void);
 
@@ -74,11 +74,17 @@ int do_the_monster_dance(void);
 void mysleep(long nsecs);
 
 void update_player_position(void);
-int menu();
-void draw_menu_items();
+int menu(void);
+void draw_menu_items(void);
 void erase_arrow(WINDOW *win, int y, int x);
 void draw_arrow(WINDOW *win, int y, int x);
+void erase_window(WINDOW *win, int height, int width);
 
-int key_repeat(WINDOW *win, int *keys, int input);
-void set_keys();
-char return_key(int index);
+void default_keys(void);
+void key_repeat(int *key, int *index);
+void draw_keys(WINDOW *win);
+bool pressed(int key, int input);
+int get_key(int key, int index);
+int set_key(int key, int *index, int value);
+void key_dialog(WINDOW *win, int active, int index);
+void keys_menu(void);

@@ -34,6 +34,30 @@
 #define MAX_LEVEL 13
 
 #define FILL_POINT 0
-#define FILL_RECT 1
-#define FILL_ALL 2
+#define FILL_RECT  1
+#define FILL_ALL   2
+
+#define NUM_BINDS     2
+#define NUM_KEYS      13
+#define BIND_UP       0
+#define BIND_DOWN     1
+#define BIND_LEFT     2
+#define BIND_RIGHT    3
+#define BIND_BOMB     4
+#define BIND_DETONATE 5
+#define BIND_RESTART  6
+#define BIND_SOUND    7
+#define BIND_PAUSE    8
+#define BIND_LOCATE   9 
+#define BIND_QUIT     10
+#define BIND_SAVE     11 
+#define BIND_LOAD     12
+
+#define LOAD_SAVED 0
+#define LOAD_LEVEL 1
+#define LOAD_NONE  2
+
+#define SPLASH_SAVED    -1
+#define SPLASH_CONTINUE -2
+#define SPLASH_NEW      -3
 

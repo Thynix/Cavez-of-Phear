@@ -64,24 +64,16 @@ int editor_main(char *file)
   }
   else
   {
-	/*curs_set(0);
-	if(prompt("File not found. Create? (Yes/No)")) {*/
-		//Boundaries are to prevent physics interactions from accessing out of bounds.
-		for(x = 0; x < MAP_XSIZE; x++) map[0][x] = MAP_WALL;
-		for(x = 0; x < MAP_XSIZE; x++) map[MAP_YSIZE - 1][x] = MAP_WALL;
-		for(y = 0; y < MAP_YSIZE; y++) map[y][0] = MAP_WALL;
-		for(y = 0; y < MAP_YSIZE; y++) map[y][MAP_XSIZE - 1] = MAP_WALL;
-		for(y = 0; y < MAP_YSIZE; y++) map[y][1] = MAP_WALL;
-		for(y = 0; y < MAP_YSIZE; y++) map[y][MAP_XSIZE - 2] = MAP_WALL;
-	/*}
-	else {
-		bail("Attempted to edit nonexistant file!");
-	}
-	curs_set(1);*/
+	for(x = 0; x < MAP_XSIZE; x++) map[0][x] = MAP_WALL;
+	for(x = 0; x < MAP_XSIZE; x++) map[MAP_YSIZE - 1][x] = MAP_WALL;
+	for(y = 0; y < MAP_YSIZE; y++) map[y][0] = MAP_WALL;
+	for(y = 0; y < MAP_YSIZE; y++) map[y][MAP_XSIZE - 1] = MAP_WALL;
+	for(y = 0; y < MAP_YSIZE; y++) map[y][1] = MAP_WALL;
+	for(y = 0; y < MAP_YSIZE; y++) map[y][MAP_XSIZE - 2] = MAP_WALL;
   }
   
   x = 2;
-  y = 2;
+  y = 1;
 
   obj = MAP_STONE;
   editor_draw_status();
@@ -94,47 +86,47 @@ int editor_main(char *file)
 
     draw_map();
     editor_draw_rect(y, x);
+    editor_draw_filltype();
     refresh();
 
-    input = mvgetch(y, x);
-
+    input = tolower(mvgetch(y, x));
+	flushinp();
     if(input == KEY_UP) y--;
     else if(input == KEY_DOWN) y++;
     else if(input == KEY_LEFT) x--;
     else if(input == KEY_RIGHT) x++;
     else if(input == '\n' || input == ' ' || input == KEY_ENTER) {
     	unsaved_changes = true;
-	if(fill_mode == FILL_POINT){ 
-		xp1 = x;
-		yp1 = y;
-		//Get rid of remnants of rectangle
-		xp2 = 0;
-		yp2 = 0;
-		editor_place();
-	}
-	else if(fill_mode == FILL_RECT){
-		if(xp1 == 0 && yp1 == 0)
-		{
+		if(fill_mode == FILL_POINT){ 
 			xp1 = x;
 			yp1 = y;
-		}
-		else if(xp2 == 0 && yp2 == 0)
-		{	
-			xp2 = x;
-			yp2 = y;
+			//Get rid of remnants of rectangle
+			xp2 = 0;
+			yp2 = 0;
 			editor_place();
 		}
-	}
-	else if(fill_mode == FILL_ALL)
-	{
-		//In case user is placing MAP_PLAYER which must be placed at a single point anyway
-		xp1 = x;
-		yp1 = y;
-		editor_place();
-	}
-      
+		else if(fill_mode == FILL_RECT){
+			if(xp1 == 0 && yp1 == 0)
+			{
+				xp1 = x;
+				yp1 = y;
+			}
+			else if(xp2 == 0 && yp2 == 0)
+			{	
+				xp2 = x;
+				yp2 = y;
+				editor_place();
+			}
+		}
+		else if(fill_mode == FILL_ALL)
+		{
+			//In case user is placing MAP_PLAYER which must be placed at a single point anyway
+			xp1 = x;
+			yp1 = y;
+			editor_place();
+		}  
     }
-    else if(tolower(input) == 'c')
+    else if(input == 'v')
     {
     	draw_box(strlen("     Enter filename:     "));
     	attrset(COLOR_PAIR(COLOR_WHITE) | A_NORMAL);
@@ -148,7 +140,7 @@ int editor_main(char *file)
     	move(y, x);
     	editor_save(file);
     }
-    else if(tolower(input) == 'p')
+    else if(input == 'p')
     {
     	int y, x;
     	int p_y = 1, p_x = 1;
@@ -169,7 +161,7 @@ int editor_main(char *file)
     	curs_set(0);
     	full_update();
     	draw_map();
-    	centered_string(23, "Press any key.");
+    	centered_string(0, "Press any key.");
     	refresh();
     	getch();
     	if(!prompt("Keep level this way? (Yes/No)"))
@@ -191,14 +183,11 @@ int editor_main(char *file)
     	xp2 = 0;
     	yp2 = 0;
     }
-    else if(tolower(input) == 'f' || input == '\t')
+    else if(input == 'f' || input == '\t')
     {
     	fill_mode++;
-    	if(fill_mode > 2) fill_mode = 0;
+    	if(fill_mode > FILL_ALL) fill_mode = FILL_POINT;
     }     
-    /*else if(input == KEY_DC || input == 0x7f) {
-      map[y - 1][x] = MAP_EMPTY;
-    }*/
     else if(input == '0' || input == '|') { obj = MAP_EMPTY; }
     else if(input == '1') { obj = MAP_DIRT; }
     else if(input == '2') { obj = MAP_STONE; }
@@ -208,14 +197,13 @@ int editor_main(char *file)
     else if(input == '6') { obj = MAP_BOMBPK; }
     else if(input == '7') { obj = MAP_MONSTER; }
     else if(input == '8') { obj = MAP_PLAYER; }
-
-    else if(tolower(input) == 's') {
+    else if(input == '9') { obj = MAP_BOMB; }
+    else if(input == 's') {
       beep();
       editor_save(file);
       unsaved_changes = false;
     }
-
-    else if(tolower(input) == 'q') {
+    else if(input == 'q') {
       curs_set(0);
         if(prompt("Are you sure you want to quit? (Yes/No)")) {
         	if(unsaved_changes && prompt("Save unsaved changes? (Yes/No)")) editor_save(file);
@@ -226,11 +214,88 @@ int editor_main(char *file)
           curs_set(1);
         }
     }
-    else if(tolower(input) == 'i') {
+    else if(input == 'i') {
+	    int diamonds = count_object(MAP_DIAMOND), digits = 1;
+	    char str[128];
 	    curs_set(0);
-	    char* filltype = "";
-	  switch(fill_mode)
-	  {
+	  	draw_box(22);
+	  	attrset(COLOR_PAIR(COLOR_WHITE));
+	  	sprintf(str, "*: %d $: %d Score: %d", diamonds, 
+		count_object(MAP_MONEY), (diamonds * POINTS_DIAMOND) + 
+		(count_object(MAP_MONEY) * POINTS_MONEY));
+		char *str2 = unsaved_changes ? "There are unsaved changes." : "All changes are saved.";
+		centered_string(MAP_YSIZE/2-1, str);
+		mvaddch(MAP_YSIZE/2-1, MAP_XSIZE/2-strlen(str)/2, CHR_DIAMOND);
+		//TODO: If there's some way to have NCURSES attributes preserved through a %c in a sprintf or mvprintw,
+		//this section in particular is in need of it.
+		while(diamonds/10 > 0)
+		{
+			diamonds /= 10;
+			digits++;
+		}
+		mvaddch(MAP_YSIZE/2-1, calc_center(strlen(str))+4+digits, CHR_MONEY);
+		centered_string(MAP_YSIZE/2, str2);
+		if(obj != MAP_EMPTY) centered_string(MAP_YSIZE/2+1, "Active object:  ");
+		else centered_string(MAP_YSIZE/2+1, "Active object: Empty");
+		switch(obj)
+		{
+			case MAP_DIRT:
+				mvaddch(MAP_YSIZE/2+1, 47, CHR_DIRT);
+				break;
+
+			case MAP_WALL:
+				mvaddch(MAP_YSIZE/2+1, 47, CHR_WALL);
+				break;
+
+			case MAP_STONE:
+				mvaddch(MAP_YSIZE/2+1, 47, CHR_STONE);
+				break;
+	
+			case MAP_DIAMOND:
+				mvaddch(MAP_YSIZE/2+1, 47, CHR_DIAMOND);
+				break;
+
+			case MAP_MONEY:
+				mvaddch(MAP_YSIZE/2+1, 47, CHR_MONEY);
+				break;
+
+			case MAP_BOMBPK:
+				mvaddch(MAP_YSIZE/2+1, 47, CHR_BOMBPK);
+				break;
+
+			case MAP_MONSTER:
+				mvaddch(MAP_YSIZE/2+1, 47, CHR_MONSTER);
+				break;
+
+			case MAP_PLAYER:
+				mvaddch(MAP_YSIZE/2+1, 47, CHR_PLAYER);
+				break;	
+				
+			case MAP_BOMB:
+				mvaddch(MAP_YSIZE/2+1, 47, CHR_BOMB);
+				break;	
+		}
+	  	refresh();
+	  	getch();
+	  	curs_set(1);
+    }
+    
+    if(y < 1) y = MAP_YSIZE - 2;
+    else if(y > MAP_YSIZE - 2) y = 1;
+    else if(x < 2) x = MAP_XSIZE - 3;
+    else if(x > MAP_XSIZE - 3) x = 2;
+
+	editor_draw_status();
+	}
+
+	return EXIT_SUCCESS;
+}
+
+void editor_draw_filltype()
+{
+	char* filltype = "";
+	switch(fill_mode)
+	{
 	  	case FILL_POINT:
 	  		filltype = "Fill mode: Point";
 	  		break;
@@ -241,67 +306,8 @@ int editor_main(char *file)
 	  		filltype = "Fill mode: All";
 	  		break;
   	}
-  	draw_box(20);
   	attrset(COLOR_PAIR(COLOR_WHITE));
-  	centered_string(MAP_YSIZE/2-1, filltype);
-  	char str[80];
-  	sprintf(str, "*: %d $: %d SCORE: %d   ", count_object(MAP_DIAMOND), 
-	count_object(MAP_MONEY), (count_object(MAP_DIAMOND) * POINTS_DIAMOND) + 
-	(count_object(MAP_MONEY) * POINTS_MONEY));
-	centered_string(MAP_YSIZE/2, str);
-	centered_string(MAP_YSIZE/2+1, "Active object: ");
-	switch(obj)
-	{
-		case MAP_EMPTY:
-			mvaddstr(12, 48, "EMPTY");
-			break;
-
-		case MAP_DIRT:
-			mvaddch(12, 48, CHR_DIRT);
-			break;
-
-		case MAP_WALL:
-			mvaddch(12, 48, CHR_WALL);
-			break;
-
-		case MAP_STONE:
-			mvaddch(12, 48, CHR_STONE);
-			break;
-	
-		case MAP_DIAMOND:
-			mvaddch(12, 48, CHR_DIAMOND);
-			break;
-
-		case MAP_MONEY:
-			mvaddch(12, 48, CHR_MONEY);
-			break;
-
-		case MAP_BOMBPK:
-			mvaddch(12, 48, CHR_BOMBPK);
-			break;
-
-		case MAP_MONSTER:
-			mvaddch(12, 48, CHR_MONSTER);
-			break;
-
-		case MAP_PLAYER:
-			mvaddch(12, 48, CHR_PLAYER);
-			break;	
-	}
-  	refresh();
-  	getch();
-  	curs_set(1);
-    }
-    
-    if(y < 1) y = MAP_YSIZE - 2;
-    else if(y > MAP_YSIZE - 2) y = 1;
-    else if(x < 2) x = MAP_XSIZE - 3;
-    else if(x > MAP_XSIZE - 3) x = 2;
-
-    editor_draw_status();
-	}
-
-	return EXIT_SUCCESS;
+  	centered_string(0, filltype);
 }
 
 void editor_save(char *file)
@@ -320,22 +326,6 @@ void editor_save(char *file)
 		msgbox("Please use Save As to set valid filename.");
 	}
 	fclose(fp);
-	/*int x, y;
-	bool error = false;*/
-	/*fp = fopen(file, "r");
-	if(fp != NULL)
-	{
-		for(y = 0; y < MAP_YSIZE; y++)
-		{
-			for(x = 0; x < MAP_XSIZE; x++)
-			{
-				if(fgetc(fp) != map[y][x]) error = true;
-			}
-		}
-	}
-	fclose(fp);
-	if(error) msgbox("Read verification failed!");
-	else msgbox("Read verification successful.");*/
 	curs_set(1);
 }
 
@@ -348,7 +338,11 @@ void editor_place()
 		{
 			for(x = 0; x < MAP_XSIZE; x++)
 			{
-				if(map[y][x] == MAP_PLAYER) map[y][x] = MAP_WALL;
+				if(map[y][x] == MAP_PLAYER)
+				{
+					if(y == 1 && x == 1) map[y][x] = MAP_WALL;
+					else map[y][x] = MAP_EMPTY;
+				}
 			}
 		}
 		map[yp1][xp1] = MAP_PLAYER;
@@ -429,12 +423,13 @@ void draw_map(void)
       else if(map[y][x] == MAP_STONE)   mvaddch(y, x, CHR_STONE);
       else if(map[y][x] == MAP_DIAMOND) mvaddch(y, x, CHR_DIAMOND);
       else if(map[y][x] == MAP_MONEY)   mvaddch(y, x, CHR_MONEY);
+      else if(map[y][x] == MAP_BOMB)    mvaddch(y, x, CHR_BOMB);
       else if(map[y][x] == MAP_BOMBPK)  mvaddch(y, x, CHR_BOMBPK);
       else if(map[y][x] == MAP_MONSTER) mvaddch(y, x, CHR_MONSTER);
     }
   }
 
-//rope
+//rope for no floating in midair
 	/*if(map[p_y+1][p_x] == MAP_EMPTY)
 	{
 		y = p_y-1;
@@ -482,55 +477,59 @@ int count_object(int object)
 
 void editor_draw_status(void)
 {
-  attrset(COLOR_PAIR(COLOR_MAGENTA));
-  mvprintw(23, 0, "0 CLR  1 #  2 O  3 *  4 :  5 $  6    7 M  8 Z  Save Quit saVeas Fill Phy Info");
-  mvaddch(23, 9, CHR_DIRT);
-  mvaddch(23, 14, CHR_STONE);
-  mvaddch(23, 19, CHR_DIAMOND);
-  mvaddch(23, 24, CHR_WALL);
-  mvaddch(23, 29, CHR_MONEY);
-  mvaddch(23, 34, CHR_BOMBPK);
-  mvaddch(23, 39, CHR_MONSTER);
-  mvaddch(23, 44, CHR_PLAYER);
-
+	attrset(COLOR_PAIR(COLOR_MAGENTA));
+	mvaddstr(MAP_YSIZE, 0, "0 CLR  1    2    3    4    5    6    7    8    9    Save Quit saVeas Fill Ph Inf");
+	mvaddch(MAP_YSIZE, 9, CHR_DIRT);
+	mvaddch(MAP_YSIZE, 14, CHR_STONE);
+	mvaddch(MAP_YSIZE, 19, CHR_DIAMOND);
+	mvaddch(MAP_YSIZE, 24, CHR_WALL);
+	mvaddch(MAP_YSIZE, 29, CHR_MONEY);
+	mvaddch(MAP_YSIZE, 34, CHR_BOMBPK);
+	mvaddch(MAP_YSIZE, 39, CHR_MONSTER);
+	mvaddch(MAP_YSIZE, 44, CHR_PLAYER);
+	mvaddch(MAP_YSIZE, 49, CHR_BOMB);
+	
   switch(obj) {
 
     case MAP_EMPTY:
-      mvaddch(23, 0, '0' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      mvaddch(MAP_YSIZE, 0, '0' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
       break;
 
     case MAP_DIRT:
-      mvaddch(23, 7, '1' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      mvaddch(MAP_YSIZE, 7, '1' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
       break;
 
     case MAP_WALL:
-      mvaddch(23, 22, '4' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      mvaddch(MAP_YSIZE, 22, '4' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
       break;
 
     case MAP_STONE:
-      mvaddch(23, 12, '2' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      mvaddch(MAP_YSIZE, 12, '2' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
       break;
 
     case MAP_DIAMOND:
-      mvaddch(23, 17, '3' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      mvaddch(MAP_YSIZE, 17, '3' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
       break;
 
     case MAP_MONEY:
-      mvaddch(23, 27, '5' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      mvaddch(MAP_YSIZE, 27, '5' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
       break;
 
     case MAP_BOMBPK:
-      mvaddch(23, 32, '6' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      mvaddch(MAP_YSIZE, 32, '6' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
       break;
 
     case MAP_MONSTER:
-      mvaddch(23, 37, '7' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      mvaddch(MAP_YSIZE, 37, '7' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
       break;
 
     case MAP_PLAYER:
-      mvaddch(23, 42, '8' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      mvaddch(MAP_YSIZE, 42, '8' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
       break;
 
+	case MAP_BOMB:
+	  mvaddch(MAP_YSIZE, 47, '9' | COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+      break;
   }
 
   attrset(A_NORMAL);
