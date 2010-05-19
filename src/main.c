@@ -260,14 +260,12 @@ int main_loop()
 						else {
 							msgbox("Cannot place bombs from this position!");
 						}
-						full_update();
 						need_refresh = true;
 					}
 				}
 				else if(press(BIND_DETONATE))
 				{
 					explode_bombs();
-					full_update();
 					need_refresh = true;
 				}
 				else if(input == 27) 
@@ -372,7 +370,6 @@ int main_loop()
 						}
 						update_delay = UPDATE_DELAY;
 						map[p_y][p_x] = MAP_PLAYER;
-						full_update();
 					}
 				}
 				
