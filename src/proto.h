@@ -1,5 +1,4 @@
 #include "common.h"
-#define press(key) pressed(key, input)
 
 int main_loop(void);
 void make_ready(void);

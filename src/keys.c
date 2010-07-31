@@ -6,6 +6,7 @@
 #include "proto.h"
 #include "common.h"
 #define SetKey(index, one, two) keys[index][0] = one; keys[index][1] = two;
+#define Key(num, name) case num: sprintf(element, "%s", name); break
 
 unsigned int keys[NUM_KEYS][NUM_BINDS];
 char *names[NUM_KEYS] = {"Up","Down","Left","Right","Bomb","Detonate","Restart","Sound","Pause","Locate","Quit","Save","Load"};
@@ -69,8 +70,8 @@ void default_keys()
 	SetKey(BIND_PAUSE, 'p', 'p');
 	SetKey(BIND_LOCATE, 'f', 'f');
 	SetKey(BIND_QUIT, 'q', 'q');
-	SetKey(BIND_SAVE, 'o', 'o');
-	SetKey(BIND_LOAD, 'l', 'l');
+	SetKey(BIND_SAVE, 'o', 269);
+	SetKey(BIND_LOAD, 'l', 273);
 	save_keys("controls.conf");
 }
 
@@ -97,21 +98,55 @@ void key_repeat(int *key, int *index)
 
 void draw_keys(WINDOW *win)
 {
-	int i, j;
+	int i, j, c;
+	char element[KEY_ELE_LNGTH];
+	char line[NUM_BINDS*KEY_ELE_LNGTH];
+	line[0] = '\0';
 	for(i = 0; i < NUM_KEYS; i++)
 	{
 		mvwprintw(win, i+1, 2, "%s: ", names[i]);
 		for(j = 0; j < NUM_BINDS; j++)
 		{
-			if(!(j > 0 && keys[i][j] == keys[i][j-1]))
+			if(j > 0 && keys[i][j] == keys[i][j-1])
 			{
-				mvwprintw(win, i+1, 18+3*j, "%c ", tolower(keys[i][j]));
+				sprintf(element, " ");
+				//Remove previous entry's comma
+				line[strlen(line)-2] = ' ';
 			}
 			else
 			{
-				mvwaddstr(win, i+1, 18+3*j, "   ");
+				c = tolower(keys[i][j]);
+				switch(c)
+				{
+					Key(259, "Up Arrow");
+					Key(258, "Down Arrow");
+					Key(260, "Left Arrow");
+					Key(261, "Right Arrow");
+					Key(265, "F1");
+					Key(266, "F2");
+					Key(267, "F3");
+					Key(268, "F4");
+					Key(269, "F5");
+					Key(270, "F6");
+					Key(271, "F7");
+					Key(272, "F8");
+					Key(273, "F9");
+					Key(274, "F10");
+					Key(275, "F11");
+					Key(276, "F12");
+					default:
+						sprintf(element, "%c", toupper(c));
+						break;
+				}
 			}
+			if(j < NUM_BINDS-1) sprintf(element, "%s, ", element);
+			
+			strcat(line, element);
 		}
+		//TODO: Is there a clear line function?
+		mvwaddstr(win, i+1, 18, "                  ");
+		mvwaddstr(win, i+1, 18, line);
+		line[0] = '\0';
 	}
 }
 
@@ -151,7 +186,7 @@ void key_dialog(WINDOW *win, int active, int index)
 	{
 		//This is a duplicate run, start index at passed value
 		if(index > -1) i = index;
-		sprintf(str, "Please press key %d for %s.           ", i, names[active]);
+		sprintf(str, "Please press key %d for %s.", i+1, names[active]);
 		do
 		{
 			if(key == 27)
@@ -160,6 +195,7 @@ void key_dialog(WINDOW *win, int active, int index)
 				wrefresh(win);
 				getch();
 			}
+			mvwaddstr(win, 0, 0, "                                     ");
 			mvwaddstr(win, 0, 0, str);
 			wrefresh(win);
 			key = getch();

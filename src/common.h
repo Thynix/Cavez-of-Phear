@@ -43,6 +43,7 @@
 
 #define NUM_BINDS     2
 #define NUM_KEYS      13
+#define KEY_ELE_LNGTH 15
 #define BIND_UP       0
 #define BIND_DOWN     1
 #define BIND_LEFT     2
@@ -65,3 +66,4 @@
 #define SPLASH_CONTINUE -2
 #define SPLASH_NEW      -3
 
+#define press(key) pressed(key, input)
