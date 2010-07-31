@@ -121,8 +121,9 @@ void splash_loop(void)
 			make_ready();
 			level = rval;
 			load = LOAD_LEVEL;
+			custom_map = false;
 		}
-		//else do nothing, level is unchanged and it will not load a level or save
+		//else do nothing and return to game
 	}while(main_loop() == -1);
 }
 
