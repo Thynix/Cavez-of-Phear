@@ -119,10 +119,7 @@ int menu(void)
 				active=top;
 			}
 		}
-		else if(press(BIND_QUIT)){
-			bail("Thanks for playing!");
-		}
-		else if(input == 27){
+		else if(press(BIND_QUIT) || input == 27){
 			bail("Thanks for playing!");
 		}
 		else if(input == '\n' || input == ' ')
