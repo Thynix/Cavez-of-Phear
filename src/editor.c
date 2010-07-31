@@ -24,10 +24,7 @@ int editor_main(char *file)
   
   bool unsaved_changes = false;
   
-  xp1 = 0;
-  yp1 = 0;
-  xp2 = 0;
-  yp2 = 0;
+  editor_reset_fill_selection();
   
   if (getenv ("ESCDELAY") == NULL)
 	ESCDELAY = 25;
@@ -54,7 +51,7 @@ int editor_main(char *file)
   signal(SIGINT, sigint_handler);
   signal(SIGWINCH, sigwinch_handler);
 
-  //If started from splash, get rid of unwanted.
+  //If started from splash,
   erase();
 
   fp = fopen(file, "r");
@@ -72,8 +69,8 @@ int editor_main(char *file)
 	for(y = 0; y < MAP_YSIZE; y++) map[y][MAP_XSIZE - 2] = MAP_WALL;
   }
   
-  x = 2;
-  y = 1;
+  x = EDITOR_STARTX;
+  y = EDITOR_STARTY;
 
   obj = MAP_STONE;
   editor_draw_status();
@@ -85,7 +82,10 @@ int editor_main(char *file)
     }
 
     draw_map();
-    editor_draw_rect(y, x);
+    if(fill_mode == FILL_RECT){ 
+    	editor_draw_rect(y, x);
+    	if(xp1 != UNSET_COORD && yp1 != UNSET_COORD) centered_string(MAP_YSIZE-1, "ESC to cancel rectangle");
+    }
     editor_draw_filltype();
     refresh();
 
@@ -100,18 +100,15 @@ int editor_main(char *file)
 		if(fill_mode == FILL_POINT){ 
 			xp1 = x;
 			yp1 = y;
-			//Get rid of remnants of rectangle
-			xp2 = 0;
-			yp2 = 0;
 			editor_place();
 		}
 		else if(fill_mode == FILL_RECT){
-			if(xp1 == 0 && yp1 == 0)
+			if(xp1 == UNSET_COORD && yp1 == UNSET_COORD)
 			{
 				xp1 = x;
 				yp1 = y;
 			}
-			else if(xp2 == 0 && yp2 == 0)
+			else if(xp2 == UNSET_COORD && yp2 == UNSET_COORD)
 			{	
 				xp2 = x;
 				yp2 = y;
@@ -139,6 +136,7 @@ int editor_main(char *file)
     	noecho();
     	move(y, x);
     	editor_save(file);
+    	unsaved_changes = false;
     }
     else if(input == 'p')
     {
@@ -148,8 +146,7 @@ int editor_main(char *file)
     	for(y = 0; y < MAP_YSIZE; y++){
     		for(x = 0; x < MAP_XSIZE; x++) {
     			tempmap[y][x] = map[y][x];
-    			//If update_map() were to squish the player it would run player_died(),
-    			//so get rid of the player for now.
+    			//If update_map() were to squish the player it would run player_died()
     			if(map[y][x] == MAP_PLAYER)
     			{
     				p_y = y;
@@ -178,10 +175,7 @@ int editor_main(char *file)
     }
     else if(input == 27)
     {
-    	xp1 = 0;
-    	yp1 = 0;
-    	xp2 = 0;
-    	yp2 = 0;
+    	editor_reset_fill_selection();
     }
     else if(input == 'f' || input == '\t')
     {
@@ -284,7 +278,7 @@ int editor_main(char *file)
     else if(y > MAP_YSIZE - 2) y = 1;
     else if(x < 2) x = MAP_XSIZE - 3;
     else if(x > MAP_XSIZE - 3) x = 2;
-
+    
 	editor_draw_status();
 	}
 
@@ -355,7 +349,7 @@ void editor_place()
 				map[yp1][xp1] = obj;
 				break;
 			case FILL_RECT:
-				//Increment if first is left/above second.
+				//Increment if first point is left of/above second.
 				yinc = (yp1 > yp2) ? -1 : 1;
 				xinc = (xp1 > xp2) ? -1 : 1;
 				for(y = yp1; y != yp2+yinc; y+=yinc)
@@ -380,19 +374,22 @@ void editor_place()
 				break;
 		}
 	}
-	xp1 = 0;
-	yp1 = 0;
-	xp2 = 0;
-	yp2 = 0;
+	editor_reset_fill_selection();
 }
+
+void editor_reset_fill_selection()
+{
+	xp1 = yp1 = xp2 = yp2 = UNSET_COORD;
+}
+
 
 void editor_draw_rect(int my, int mx)
 {
 	int x, y;
 	int x2 = xp2, y2 = yp2;
-	if(xp1 != 0 && yp1 != 0)
+	if(xp1 != UNSET_COORD && yp1 != UNSET_COORD)
 	{
-		if(xp2 == 0 && yp2 == 0)
+		if(xp2 == UNSET_COORD && yp2 == UNSET_COORD)
 		{
 			y2 = my;
 			x2 = mx;
@@ -428,19 +425,6 @@ void draw_map(void)
       else if(map[y][x] == MAP_MONSTER) mvaddch(y, x, CHR_MONSTER);
     }
   }
-
-//rope for no floating in midair
-	/*if(map[p_y+1][p_x] == MAP_EMPTY)
-	{
-		y = p_y-1;
-		while(map[y][p_x] == MAP_EMPTY)
-		{
-			//msgbox("drawing rope");
-			mvaddch(y+1, p_x, '|');
-			y--;
-		}
-		refresh();
-	}*/
 }
 
 int save_map(FILE *fp)

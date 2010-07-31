@@ -37,6 +37,10 @@
 #define FILL_RECT  1
 #define FILL_ALL   2
 
+#define UNSET_COORD   -1
+#define EDITOR_STARTX 2
+#define EDITOR_STARTY 1
+
 #define NUM_BINDS     2
 #define NUM_KEYS      13
 #define BIND_UP       0

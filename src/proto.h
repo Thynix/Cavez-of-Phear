@@ -37,6 +37,7 @@ int load_map(FILE *fp, char map[MAP_YSIZE][MAP_XSIZE]);
 void editor_draw_status(void);
 void editor_place(void);
 void editor_draw_rect(int my, int mx);
+void editor_reset_fill_selection();
 void editor_save(char *file);
 void editor_draw_filltype();
 
