@@ -599,8 +599,6 @@ void explode(int x, int y, int len, int chr)
 		refresh();
 		mysleep(EX_DELAY);
 	}
-	//Refresh level to initial state so this doesn't stick around.
-	load = LOAD_LEVEL;
 }
 
 
@@ -718,84 +716,88 @@ void explode_bombs(void)
 	return;
 }
 
+bool monster_passable(int y, int x)
+{
+	return map[y][x] == MAP_EMPTY || map[y][x] == MAP_PLAYER; 
+}
 
 int do_the_monster_dance(void)
 {
-	int x,y,r,d,moved;
-
-	d = rand() % 3;
+	int x,y,r;
+	bool move_vert = (rand() % 3) != 2;
+	bool moved;
 
 	for(y = 0; y < MAP_YSIZE; y++) {
 		for(x = 0; x < MAP_XSIZE; x++) {
-			moved = 0;
+			moved = false;
 			if(map[y][x] == MAP_MONSTER) {
-				if (d == 0 || d == 1) {
-
-					if (p_y > y && (map[y+1][x] == MAP_EMPTY || map[y+1][x] == MAP_PLAYER)) {
+				if (move_vert) {
+					//Move up or down toward player
+					if (p_y > y && monster_passable(y+1, x)) {
 						map[y][x] = MAP_EMPTY;
 						map[y+1][x] = MAP_MONSTER;
 						y += 2;
-						moved++;
+						moved = true;
 					}
-					else if (p_y < y && (map[y-1][x] == MAP_EMPTY || map[y-1][x] == MAP_PLAYER)) {
+					else if (p_y < y && monster_passable(y-1, x)) {
 						map[y][x] = MAP_EMPTY;
 						map[y-1][x] = MAP_MONSTER;
 						y += 2;
-						moved++;
+						moved = true;
 					}
 
 				}
-				if (moved == 0) {
-					if (p_x < x && (map[y][x-1] == MAP_EMPTY || map[y][x-1] == MAP_PLAYER)) {
+				
+				if (!moved) {
+					//Move left or right toward player
+					if (p_x < x && monster_passable(y, x-1)) {
 						map[y][x] = MAP_EMPTY;
 						map[y][x-1] = MAP_MONSTER;
 						x += 2;
-						moved++;
+						moved = true;
 					}
-					else if (p_x > x && (map[y][x+1] == MAP_EMPTY || map[y][x+1] == MAP_PLAYER)) {
+					else if (p_x > x && monster_passable(y, x+1)) {
 						map[y][x] = MAP_EMPTY;
 						map[y][x+1] = MAP_MONSTER;
 						x += 2;
-						moved++;
+						moved = true;
 					}
 				}
-				if (moved == 0) {
+				//Did not move y or x: trapped! Get anxious.
+				if (!moved) {
 					r = rand() % 4;
 					switch (r) {
 					case 0:
-						if(map[y][x-1] == MAP_EMPTY || map[y][x-1] == MAP_PLAYER) {
+						if(monster_passable(y, x-1)) {
 							map[y][x] = MAP_EMPTY;
 							map[y][x-1] = MAP_MONSTER;
 						}
 						break;
 
 					case 1:
-						if(map[y][x+1] == MAP_EMPTY || map[y][x+1] == MAP_PLAYER) {
+						if(monster_passable(y, x+1)) {
 							map[y][x] = MAP_EMPTY;
 							map[y][x+1] = MAP_MONSTER;
 						}
 						break;
 					case 2:
-						if(map[y-1][x] == MAP_EMPTY || map[y-1][x] == MAP_PLAYER) {
+						if(monster_passable(y-1, x)) {
 							map[y][x] = MAP_EMPTY;
 							map[y-1][x] = MAP_MONSTER;
 						}
 						break;
 					case 3:
-						if(map[y+1][x] == MAP_EMPTY || map[y+1][x] == MAP_PLAYER) {
+						if(monster_passable(y+1, x)) {
 							map[y][x] = MAP_EMPTY;
 							map[y+1][x] = MAP_MONSTER;
 						}
 						break;
-					default:
-						exit(1);
 					}
-
 
 				}
 
 				if (map[p_y][p_x] == MAP_MONSTER)
-				player_died();
+					player_died();
 
 			}
 		}

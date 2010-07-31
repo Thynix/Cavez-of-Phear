@@ -70,6 +70,7 @@ void fade_dissolv(void);
 void explode_bombs(void);
 
 int do_the_monster_dance(void);
+bool monster_passable(int y, int x);
 
 void mysleep(long nsecs);
 
