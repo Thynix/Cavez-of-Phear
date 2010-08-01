@@ -132,7 +132,7 @@ void make_ready(void)
 	level = 1;
 	score = 0;
 	bombs = 0;
-	need_refresh = 0;
+	need_refresh = false;
 }
 
 void load_game_wrapper(void)
@@ -239,28 +239,47 @@ int main_loop()
 				flushinp();
 				if(press(BIND_BOMB))
 				{
-					if(bombs > 0 && map[p_y][p_x] != MAP_BOMB) {
-
-						bombs--;
-
-						if(map[p_y+1][p_x] == MAP_EMPTY) {
-							map[p_y+1][p_x] = MAP_BOMB;
-						}
-						else if(map[p_y+1][p_x+1] == MAP_EMPTY && map[p_y][p_x+1] == MAP_EMPTY) {
-							map[p_y+1][p_x+1] = MAP_BOMB;
-						}
-						else if(map[p_y+1][p_x-1] == MAP_EMPTY && map[p_y][p_x-1] == MAP_EMPTY) {
-							map[p_y+1][p_x-1] = MAP_BOMB;
-						}
-						else if(map[p_y][p_x-1] == MAP_EMPTY){
-							map[p_y][p_x-1] = MAP_BOMB;
-						}
-						else if(map[p_y][p_x+1] == MAP_EMPTY){
-							map[p_y][p_x+1] = MAP_BOMB;
-						}
-						else {
+					if(bombs > 0) {
+						if(!loc_empty(p_y+1,p_x) && !loc_empty(p_y-1,p_x) && !loc_empty(p_y,p_x+1) && !loc_empty(p_y,p_x-1))
+						{
 							msgbox("Cannot place bombs from this position!");
 						}
+						else
+						{
+							centered_string(0, "Press a direction key to place a bomb");
+							centered_string(MAP_YSIZE-1, "ESC to cancel bomb placement");
+							while(true)
+							{
+								input = tolower(getch());
+								flushinp();
+								if(press(BIND_UP) && loc_empty(p_y-1,p_x))
+								{
+									map[p_y-1][p_x] = MAP_BOMB;
+									bombs--;
+									break;
+								}
+								else if(press(BIND_DOWN) && loc_empty(p_y+1,p_x))
+								{
+									map[p_y+1][p_x] = MAP_BOMB;
+									bombs--;
+									break;
+								}
+								else if(press(BIND_LEFT) && loc_empty(p_y,p_x-1))
+								{
+									map[p_y][p_x-1] = MAP_BOMB;
+									bombs--;
+									break;
+								}
+								else if(press(BIND_RIGHT) && loc_empty(p_y,p_x+1))
+								{
+									map[p_y][p_x+1] = MAP_BOMB;
+									bombs--;
+									break;
+								}
+								else if(input == 27) break;
+							}
+						}
+						
 						need_refresh = true;
 					}
 				}
@@ -359,7 +378,8 @@ int main_loop()
 						}
 				
 						//Push bomb or stone in direction of movement
-						if(map[p_y][p_x+x_direction] == MAP_EMPTY && (map[p_y][p_x] == MAP_BOMB || map[p_y][p_x] == MAP_STONE)) {
+						if(loc_empty(p_y,p_x+x_direction) && (map[p_y][p_x] == MAP_BOMB || map[p_y][p_x] == MAP_STONE)) 
+						{
 							map[p_y][p_x+x_direction] = map[p_y][p_x];
 							map[p_y][p_x] = MAP_EMPTY;
 						}
@@ -438,6 +458,11 @@ void update_player_position(void)
 	p_y = 1;
 	p_x = 1;
 	map[1][1] = MAP_PLAYER;
+}
+
+bool loc_empty(int y, int x)
+{
+	return map[y][x] == MAP_EMPTY;
 }
 
 bool falls(char c)
@@ -694,14 +719,14 @@ void explode_bombs(void)
 		for(x = 0; x < MAP_XSIZE; x++) {
 			if(map[y][x] == MAP_BOMB) {
 				_beep();
-				for(by = y - 1; by < y + 2; by++) {
-					for(bx = x - 1 ; bx < x + 2; bx++) {
+				for(by = y - 1; by <= y + 1; by++) {
+					for(bx = x - 1 ; bx <= x + 1; bx++) {
 						if(by == p_y && bx == p_x)
-						playerdied = true;
+							playerdied = true;
 
 						if(map[by][bx] != MAP_WALL && map[by][bx] != MAP_DIAMOND) {
 							map[by][bx] = MAP_EMPTY;
-							mvaddch(by+1, bx, '+');
+							mvaddch(by, bx, '+');
 							refresh();
 						}
 					}

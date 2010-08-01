@@ -200,9 +200,10 @@ int editor_main(char *file)
     else if(input == 'q') {
       curs_set(0);
         if(prompt("Are you sure you want to quit? (Yes/No)")) {
-        	if(unsaved_changes && prompt("Save unsaved changes? (Yes/No)")) editor_save(file);
-		curses_stop();
-		exit(0);
+        	if(unsaved_changes && prompt("Save unsaved changes? (Yes/No)"))
+        		editor_save(file);
+			curses_stop();
+			exit(0);
         }
         else{
           curs_set(1);
