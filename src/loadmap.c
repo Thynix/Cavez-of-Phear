@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <ncurses.h>
-#include "common.h"
 #include "proto.h"
 
 int load_map(FILE *fp, char map[MAP_YSIZE][MAP_XSIZE]);

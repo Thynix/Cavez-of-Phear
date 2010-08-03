@@ -3,7 +3,6 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
-#include "common.h"
 #include "proto.h"
 
 int calc_center(int slen)
@@ -14,6 +13,12 @@ int calc_center(int slen)
 void centered_string(int y, char *message)
 {
 	mvprintw(y, calc_center((strlen(message))), "%s", message);
+}
+
+void error_quit(char *message)
+{
+	msgbox(message);
+	bail(message);
 }
 
 bool prompt(char *message)

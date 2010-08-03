@@ -5,7 +5,6 @@
 #include <signal.h>
 #include <time.h>
 #include <ctype.h>
-#include "common.h"
 #include "proto.h"
 
 #define UPDATE_DELAY 2000000
@@ -54,7 +53,7 @@ int main(int argc, char **argv)
 	curses_start();
 
 	if(COLS < 80 || LINES < 24)
-	bail("Your terminal size must be at least 80x24");
+		bail(TERM_TOOSMALL);
 
 	signal(SIGINT, sigint_handler);
 	signal(SIGWINCH, sigwinch_handler);
@@ -72,7 +71,7 @@ int main(int argc, char **argv)
 	
 	if(load_keys("controls.conf") == 1)
 	{
-		msgbox("Falling back to default key bindings");
+		msgbox(KEYCONF_DEFAULTED);
 		default_keys();
 	}
 
@@ -144,13 +143,14 @@ void load_game_wrapper(void)
 		diamonds_left = count_object(MAP_DIAMOND);
 		if(load_game(fp, &score, &bombs, &level) == 1)
 		{
-			msgbox("Save file invalid!");
+			error_quit(LOAD_INVALID);
 		}
 	}
 	else
 	{
-		msgbox("Save file not found!");
+		error_quit(LOAD_FILEERROR);
 	}
+	
 	fclose(fp);
 }
 
@@ -187,16 +187,12 @@ int main_loop()
 				diamonds_left = count_object(MAP_DIAMOND);
 				if(diamonds_left == 0)
 				{
-					char error_str[39] = "No diamonds present, level unplayable.";
-					msgbox(error_str);
-					bail(error_str);
+					error_quit(LOAD_NODIAMONDS);
 				}
 			}
 			else
 			{
-				char error_str[22] = "Unable to open level.";
-				msgbox(error_str);
-				bail(error_str);
+				error_quit(LOAD_FILEERROR);
 			}
 		}
 		else if(load == LOAD_SAVED)
@@ -250,12 +246,12 @@ int main_loop()
 					if(bombs > 0) {
 						if(!loc_empty(p_y+1,p_x) && !loc_empty(p_y-1,p_x) && !loc_empty(p_y,p_x+1) && !loc_empty(p_y,p_x-1))
 						{
-							msgbox("Cannot place bombs from this position!");
+							msgbox(BOMB_CANNOTPLACE);
 						}
 						else
 						{
-							centered_string(0, "Press a direction key to place a bomb");
-							centered_string(MAP_YSIZE-1, "ESC to cancel bomb placement");
+							centered_string(0, BOMB_HINT);
+							centered_string(MAP_YSIZE-1, BOMB_ESC);
 							while(true)
 							{
 								input = tolower(getch());
@@ -302,7 +298,7 @@ int main_loop()
 				}
 				else if(press(BIND_QUIT))
 				{
-					if(prompt("Are you sure you want to quit? (Yes/No)")) {
+					if(prompt(PROMPT_QUIT)) {
 						curses_stop();
 						exit(0);
 					}
@@ -333,7 +329,7 @@ int main_loop()
 				}
 				else if(press(BIND_PAUSE))
 				{
-					msgbox("Game paused");
+					msgbox(PAUSED);
 				}
 				else if(press(BIND_LOCATE))
 				{
@@ -553,7 +549,7 @@ void create_map(FILE *fp)
 	}
 
 	if(load_map(fp, map) == 1) {
-		bail("Unable to load map!");
+		bail(LOAD_FILEERROR);
 	}
 
 	full_update();
@@ -604,7 +600,7 @@ int level_of_save(void)
 	if(fscanf(fp, "%d", &i) == EOF)
 	{
 		i = -1;
-		msgbox("Error in save file, unable to load.");
+		msgbox(SAVE_FILEERROR);
 	}
 	return i;
 }

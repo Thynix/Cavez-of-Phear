@@ -4,7 +4,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h>
-#include "common.h"
 #include "proto.h"
 
 char map[MAP_YSIZE][MAP_XSIZE];
@@ -46,7 +45,7 @@ int editor_main(char *file)
   curs_set(1);
 
   if(COLS < 80 || LINES < 24)
-    bail("Your terminal size must be at least 80x24");
+    bail(TERM_TOOSMALL);
 
   signal(SIGINT, sigint_handler);
   signal(SIGWINCH, sigwinch_handler);
@@ -84,7 +83,7 @@ int editor_main(char *file)
     draw_map();
     if(fill_mode == FILL_RECT){ 
     	editor_draw_rect(y, x);
-    	if(xp1 != UNSET_COORD && yp1 != UNSET_COORD) centered_string(MAP_YSIZE-1, "ESC to cancel rectangle");
+    	if(xp1 != UNSET_COORD && yp1 != UNSET_COORD) centered_string(MAP_YSIZE-1, EDITOR_ESCRECT);
     }
     editor_draw_filltype();
     refresh();
@@ -125,9 +124,10 @@ int editor_main(char *file)
     }
     else if(input == 'v')
     {
-    	draw_box(strlen("     Enter filename:     "));
+    	//Centered with 10 spaces - 5 for each side
+    	draw_box(strlen("          ")+strlen(EDITOR_ENTERFILE));
     	attrset(COLOR_PAIR(COLOR_WHITE) | A_NORMAL);
-    	centered_string(MAP_YSIZE / 2 - 1, "Enter filename:");
+    	centered_string(MAP_YSIZE / 2 - 1, EDITOR_ENTERFILE);
     	echo();
     	move(MAP_YSIZE / 2, 25);
     	char temp[128];
@@ -158,10 +158,10 @@ int editor_main(char *file)
     	curs_set(0);
     	full_update();
     	draw_map();
-    	centered_string(0, "Press any key.");
+    	centered_string(0, EDITOR_ANYKEY);
     	refresh();
     	getch();
-    	if(!prompt("Keep level this way? (Yes/No)"))
+    	if(!prompt(EDITOR_PROMPT_PHYSICS))
     	{
     		for(y = 0; y < MAP_YSIZE; y++){
 	    		for(x = 0; x < MAP_XSIZE; x++) {
@@ -199,8 +199,8 @@ int editor_main(char *file)
     }
     else if(input == 'q') {
       curs_set(0);
-        if(prompt("Are you sure you want to quit? (Yes/No)")) {
-        	if(unsaved_changes && prompt("Save unsaved changes? (Yes/No)"))
+        if(prompt(PROMPT_QUIT)) {
+        	if(unsaved_changes && prompt(EDITOR_PROMPT_SAVECHANGES))
         		editor_save(file);
 			curses_stop();
 			exit(0);
@@ -218,7 +218,7 @@ int editor_main(char *file)
 	  	sprintf(str, "*: %d $: %d Score: %d", diamonds, 
 		count_object(MAP_MONEY), (diamonds * POINTS_DIAMOND) + 
 		(count_object(MAP_MONEY) * POINTS_MONEY));
-		char *str2 = unsaved_changes ? "There are unsaved changes." : "All changes are saved.";
+		char *str2 = unsaved_changes ? EDITOR_UNSAVEDCHANGES : EDITOR_NOUNSAVEDCHANGES;
 		centered_string(MAP_YSIZE/2-1, str);
 		mvaddch(MAP_YSIZE/2-1, MAP_XSIZE/2-strlen(str)/2, CHR_DIAMOND);
 		//TODO: If there's some way to have NCURSES attributes preserved through a %c in a sprintf or mvprintw,
@@ -230,8 +230,8 @@ int editor_main(char *file)
 		}
 		mvaddch(MAP_YSIZE/2-1, calc_center(strlen(str))+4+digits, CHR_MONEY);
 		centered_string(MAP_YSIZE/2, str2);
-		if(obj != MAP_EMPTY) centered_string(MAP_YSIZE/2+1, "Active object:  ");
-		else centered_string(MAP_YSIZE/2+1, "Active object: Empty");
+		if(obj != MAP_EMPTY) centered_string(MAP_YSIZE/2+1, EDITOR_ACTIVE_OBJ);
+		else centered_string(MAP_YSIZE/2+1, EDITOR_ACTIVE_EMPTY);
 		switch(obj)
 		{
 			case MAP_DIRT:
@@ -292,13 +292,13 @@ void editor_draw_filltype()
 	switch(fill_mode)
 	{
 	  	case FILL_POINT:
-	  		filltype = "Fill mode: Point";
+	  		filltype = EDITOR_FILL_POINT;
 	  		break;
 	  	case FILL_RECT:
-	  		filltype = "Fill mode: Rectangle";
+	  		filltype = EDITOR_FILL_RECT;
 	  		break;
 	  	case FILL_ALL:
-	  		filltype = "Fill mode: All";
+	  		filltype = EDITOR_FILL_ALL;
 	  		break;
   	}
   	attrset(COLOR_PAIR(COLOR_WHITE));
@@ -312,13 +312,13 @@ void editor_save(char *file)
 	if(fp != NULL)
 	{
 	      if(save_map(fp) == 1) {
-		 bail("save_map() failed");
+	      	bail("editor_save() -> save_map()");
 	      }
 	}
 	else
 	{
-		msgbox("Unable to open map for saving!");
-		msgbox("Please use Save As to set valid filename.");
+		msgbox(EDITOR_SAVENAME1);
+		msgbox(EDITOR_SAVENAME2);
 	}
 	fclose(fp);
 	curs_set(1);
@@ -371,7 +371,7 @@ void editor_place()
 				}
 				break;
 			default:
-				msgbox("fill_mode is an unknown value!");
+				msgbox(EDITOR_FILL_ERROR);
 				break;
 		}
 	}
@@ -438,7 +438,7 @@ int save_map(FILE *fp)
     }
   }
 	
-  msgbox("Save succeeded!");
+  msgbox(SAVE_SUCCESS);
 
   return 0;
 }

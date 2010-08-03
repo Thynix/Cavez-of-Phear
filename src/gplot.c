@@ -1,5 +1,4 @@
 #include <ncurses.h>
-#include "common.h"
 #include "proto.h"
 
 int gplot(char *filename, int x_offset, int y_offset, bool ign_space);

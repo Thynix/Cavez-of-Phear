@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <ctype.h>
-#include "common.h"
 #include "proto.h"
 
 int splash(bool in_progress);

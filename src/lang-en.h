@@ -1,0 +1,32 @@
+#define KEYCONF_DEFAULTED "Falling back to default key bindings."
+#define TERM_TOOSMALL "Your terminal size must be at least 80x24."
+
+#define SAVE_SUCCESS "Save successful!"
+
+#define LOAD_NODIAMONDS "No diamonds present, level unplayable."
+#define LOAD_FILEERROR "Unable to load level."
+#define LOAD_INVALID "Save file invalid!"
+#define SAVE_FILEERROR "Save file not found!"
+
+#define BOMB_CANNOTPLACE "Cannot place bombs from this position!"
+#define BOMB_HINT "Press a direction key to place a bomb."
+#define BOMB_ESC "ESC to cancel bomb placement."
+
+#define PROMPT_QUIT "Are you sure you want to quit? (Yes/No)"
+#define PAUSED "Game paused."
+
+#define EDITOR_ESCRECT "ESC to cancel rectangle."
+#define EDITOR_ENTERFILE "Enter filename:"
+#define EDITOR_ANYKEY "Press any key."
+#define EDITOR_PROMPT_PHYSICS "Keep level this way? (Yes/No)"
+#define EDITOR_PROMPT_SAVECHANGES "Save unsaved changes? (Yes/No)"
+#define EDITOR_UNSAVEDCHANGES "There are unsaved changes."
+#define EDITOR_NOUNSAVEDCHANGES "All changes are saved."
+#define EDITOR_ACTIVE_OBJ "Active object:  "
+#define EDITOR_ACTIVE_EMPTY "Active object: Empty"
+#define EDITOR_FILL_POINT "Fill mode: Point"
+#define EDITOR_FILL_RECT "Fill mode: Rectangle"
+#define EDITOR_FILL_ALL "Fill mode: All"
+#define EDITOR_FILL_ERROR "fill_mode is an unknown value!"
+#define EDITOR_SAVENAME1 "Unable to open map for saving!"
+#define EDITOR_SAVENAME2 "Please use Save As to set valid filename."

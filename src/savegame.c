@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ncurses.h>
-#include "common.h"
 #include "proto.h"
 
 int save_game(FILE *fp, long int score, int bombs, int level);

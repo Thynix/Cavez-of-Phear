@@ -1,6 +1,5 @@
 #include <ncurses.h>
 #include <stdlib.h>
-#include "common.h"
 #include "proto.h"
 
 #define VERBOSE 1

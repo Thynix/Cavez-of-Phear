@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <ncurses.h>
-#include "common.h"
 #include "proto.h"
 
 int load_game(FILE *fp, long int *score, int *bombs, int *level);

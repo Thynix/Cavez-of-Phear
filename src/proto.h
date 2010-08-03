@@ -1,4 +1,5 @@
 #include "common.h"
+#include "lang-en.h"
 
 int main_loop(void);
 void make_ready(void);
@@ -6,6 +7,7 @@ void make_ready(void);
 void curses_start(void);
 void curses_stop(void);
 void bail(char *message);
+void error_quit(char *message);
 void sigint_handler();
 void sigwinch_handler();
 
