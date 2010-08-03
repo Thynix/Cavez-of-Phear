@@ -20,7 +20,7 @@ int update_map(void);
 bool falls(char c);
 bool loc_empty(int y, int x);
 void full_update(void);
-void player_get_item(int y, int x);
+bool player_get_item(int y, int x);
 void create_map(FILE *fp);
 void draw_status(void);
 

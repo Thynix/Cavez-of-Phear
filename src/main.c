@@ -161,6 +161,7 @@ int main_loop()
 	int old_p_x;
 	int old_p_y;
 	int x_direction;
+	int y_direction;
 	int update_delay;
 	long last_tick_time = 0;
 	int tick = 100;
@@ -354,13 +355,14 @@ int main_loop()
 				else
 				{
 					x_direction = -2;
+					y_direction = -2;
 					old_p_y = p_y;
 					old_p_x = p_x;
 
-					if(press(BIND_UP))    { p_y--; x_direction = 0; }
-					else if(press(BIND_DOWN))  { p_y++; x_direction = 0; }
-					else if(press(BIND_LEFT))  { p_x--; x_direction = -1; }
-					else if(press(BIND_RIGHT)) { p_x++; x_direction = 1; }
+					if(press(BIND_UP))    { p_y--; x_direction = 0; y_direction = -1; }
+					else if(press(BIND_DOWN))  { p_y++; x_direction = 0; y_direction = 1; }
+					else if(press(BIND_LEFT))  { p_x--; x_direction = -1; y_direction = 0; }
+					else if(press(BIND_RIGHT)) { p_x++; x_direction = 1; y_direction = 0; }
 					
 					if(x_direction != -2)
 					{
@@ -378,21 +380,26 @@ int main_loop()
 						}
 						else
 						{
-							player_get_item(p_y, p_x);
+							if(!player_get_item(p_y, p_x))
+							{
+								//Push bomb or stone in direction of movement
+								if(map[p_y][p_x] == MAP_BOMB || map[p_y][p_x] == MAP_STONE)
+								{
+									if(loc_empty(p_y+y_direction, p_x+x_direction)) 
+									{
+										map[p_y+y_direction][p_x+x_direction] = map[p_y][p_x];
+										map[p_y][p_x] = MAP_EMPTY;
+									}
+									//Can't push it
+									else
+									{
+										p_y = old_p_y;
+										p_x = old_p_x;
+									}
+								}
+							}
 						}
-				
-						//Push bomb or stone in direction of movement
-						if(loc_empty(p_y,p_x+x_direction) && (map[p_y][p_x] == MAP_BOMB || map[p_y][p_x] == MAP_STONE)) 
-						{
-							map[p_y][p_x+x_direction] = map[p_y][p_x];
-							map[p_y][p_x] = MAP_EMPTY;
-						}
-						//Can't push it
-						else if(map[p_y][p_x] == MAP_BOMB || map[p_y][p_x] == MAP_STONE)
-						{
-							p_y = old_p_y;
-							p_x = old_p_x;
-						}
+						
 						update_delay = UPDATE_DELAY;
 						map[p_y][p_x] = MAP_PLAYER;
 					}
@@ -430,20 +437,24 @@ void full_update()
 	while(update_map() != 0);
 }
 
-void player_get_item(int y, int x)
+bool player_get_item(int y, int x)
 {
 	if(map[y][x] == MAP_DIAMOND) {
 		map[y][x] = MAP_EMPTY;
 		got_diamond();
+		return true;
 	}
 	else if(map[y][x] == MAP_MONEY) {
 		map[y][x] = MAP_EMPTY;
 		got_money();
+		return true;
 	}
 	else if(map[y][x] == MAP_BOMBPK) {
 		map[y][x] = MAP_EMPTY;
 		got_bombs();
+		return true;
 	}
+	return false;
 }
 
 
