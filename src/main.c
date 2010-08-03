@@ -185,10 +185,18 @@ int main_loop()
 				create_map(fp);
 				update_player_position();
 				diamonds_left = count_object(MAP_DIAMOND);
+				if(diamonds_left == 0)
+				{
+					char error_str[39] = "No diamonds present, level unplayable.";
+					msgbox(error_str);
+					bail(error_str);
+				}
 			}
 			else
 			{
-				bail("Unable to open level!");
+				char error_str[22] = "Unable to open level.";
+				msgbox(error_str);
+				bail(error_str);
 			}
 		}
 		else if(load == LOAD_SAVED)
