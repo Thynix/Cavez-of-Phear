@@ -15,7 +15,7 @@
 #define PROMPT_QUIT "Are you sure you want to quit? (Yes/No)"
 #define PAUSED "Game paused."
 
-#define EDITOR_ESCRECT "ESC to cancel rectangle."
+#define EDITOR_ESC_RECT "ESC to cancel rectangle."
 #define EDITOR_ENTERFILE "Enter filename:"
 #define EDITOR_ANYKEY "Press any key."
 #define EDITOR_PROMPT_PHYSICS "Keep level this way? (Yes/No)"

@@ -38,6 +38,7 @@ int editor_main(char *file);
 int save_map(FILE *fp);
 int load_map(FILE *fp, char map[MAP_YSIZE][MAP_XSIZE]);
 void editor_draw_status(void);
+void editor_draw_filename(char *file);
 void editor_place(void);
 void editor_draw_rect(int my, int mx);
 void editor_reset_fill_selection();
@@ -45,8 +46,8 @@ void editor_save(char *file);
 void editor_draw_filltype();
 
 int level_of_save(void);
-int save_game(FILE *fp, long int score, int bombs, int level);
-int load_game(FILE *fp, long int *score, int *bombs, int *level);
+int save_game(FILE *fp, long int score, int bombs, int level, int moves);
+int load_game(FILE *fp, long int *score, int *bombs, int *level, int *moves);
 int save_keys(char *filename);
 int load_keys(char *filename);
 void default_keys(void);

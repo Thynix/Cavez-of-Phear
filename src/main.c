@@ -19,6 +19,7 @@ long int score;
 int bombs;
 bool custom_map;
 int load;
+int moves;
 bool need_refresh;
 bool option_sound;
 bool first_run;
@@ -131,6 +132,7 @@ void make_ready(void)
 	level = 1;
 	score = 0;
 	bombs = 0;
+	moves = 0;
 	need_refresh = false;
 }
 
@@ -141,7 +143,7 @@ void load_game_wrapper(void)
 		create_map(fp);
 		update_player_position();
 		diamonds_left = count_object(MAP_DIAMOND);
-		if(load_game(fp, &score, &bombs, &level) == 1)
+		if(load_game(fp, &score, &bombs, &level, &moves) == 1)
 		{
 			error_quit(LOAD_INVALID);
 		}
@@ -175,6 +177,7 @@ int main_loop()
 
 		if(load == LOAD_LEVEL)
 		{
+			moves = 0;
 			if(!custom_map)
 			{
 				snprintf(current_map, sizeof current_map - 1, "%s/levels/%02d", get_data_dir(0), level);
@@ -261,24 +264,28 @@ int main_loop()
 								{
 									map[p_y-1][p_x] = MAP_BOMB;
 									bombs--;
+									moves++;
 									break;
 								}
 								else if(press(BIND_DOWN) && loc_empty(p_y+1,p_x))
 								{
 									map[p_y+1][p_x] = MAP_BOMB;
 									bombs--;
+									moves++;
 									break;
 								}
 								else if(press(BIND_LEFT) && loc_empty(p_y,p_x-1))
 								{
 									map[p_y][p_x-1] = MAP_BOMB;
 									bombs--;
+									moves++;
 									break;
 								}
 								else if(press(BIND_RIGHT) && loc_empty(p_y,p_x+1))
 								{
 									map[p_y][p_x+1] = MAP_BOMB;
 									bombs--;
+									moves++;
 									break;
 								}
 								else if(input == 27) break;
@@ -292,6 +299,7 @@ int main_loop()
 				{
 					explode_bombs();
 					need_refresh = true;
+					moves++;
 				}
 				else if(input == 27) 
 				{
@@ -315,7 +323,7 @@ int main_loop()
 					if(fp != NULL)
 					{
 						save_map(fp);
-						save_game(fp, score, bombs, level);
+						save_game(fp, score, bombs, level, moves);
 					}
 					fclose(fp);
 				}
@@ -366,11 +374,13 @@ int main_loop()
 					
 					if(x_direction != -2)
 					{
+						moves++;
 						map[old_p_y][old_p_x] = MAP_EMPTY;
 					
 						if(map[p_y][p_x] == MAP_WALL) {
 							p_y = old_p_y;
 							p_x = old_p_x;
+							moves--;
 						}
 						else if(map[p_y][p_x] == MAP_MONSTER) {
 							player_died();
@@ -393,6 +403,7 @@ int main_loop()
 									//Can't push it
 									else
 									{
+										moves--;
 										p_y = old_p_y;
 										p_x = old_p_x;
 									}
@@ -697,24 +708,29 @@ void level_done(int x, int y)
 void draw_status(void)
 {
 	attrset(COLOR_PAIR(COLOR_MAGENTA) | A_BOLD);
-	mvprintw(MAP_YSIZE, 0, "SCORE:");
+	mvprintw(MAP_YSIZE, 0, "LEVEL:");
 	attrset(COLOR_PAIR(COLOR_WHITE) | A_BOLD);
-	mvprintw(MAP_YSIZE, 7, "%d", score);
+	mvprintw(MAP_YSIZE, 7, "%02d", level);
 	
 	attrset(COLOR_PAIR(COLOR_MAGENTA) | A_BOLD);
-	mvprintw(MAP_YSIZE, 22, "DIAMONDS LEFT:");
+	mvprintw(MAP_YSIZE, 11, "DIAMONDS LEFT:");
 	attrset(COLOR_PAIR(COLOR_WHITE) | A_BOLD);
-	mvprintw(MAP_YSIZE, 37, "%02d", diamonds_left);
+	mvprintw(MAP_YSIZE, 26, "%02d", diamonds_left);
+	
+	attrset(COLOR_PAIR(COLOR_MAGENTA) | A_BOLD);
+	mvprintw(MAP_YSIZE, 30, "BOMBS:");
+	attrset(COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+	mvprintw(MAP_YSIZE, 37, "%02d", bombs);
+	
+	attrset(COLOR_PAIR(COLOR_MAGENTA) | A_BOLD);
+	mvprintw(MAP_YSIZE, 41, "MOVES:");
+	attrset(COLOR_PAIR(COLOR_WHITE) | A_BOLD);
+	mvprintw(MAP_YSIZE, 48, "%d", moves);
 
 	attrset(COLOR_PAIR(COLOR_MAGENTA) | A_BOLD);
-	mvprintw(MAP_YSIZE, 50, "BOMBS:");
+	mvprintw(MAP_YSIZE, 55, "SCORE:");
 	attrset(COLOR_PAIR(COLOR_WHITE) | A_BOLD);
-	mvprintw(MAP_YSIZE, 57, "%02d", bombs);
-
-	attrset(COLOR_PAIR(COLOR_MAGENTA) | A_BOLD);
-	mvprintw(MAP_YSIZE, 71, "LEVEL:");
-	attrset(COLOR_PAIR(COLOR_WHITE) | A_BOLD);
-	mvprintw(MAP_YSIZE, 78, "%02d", level);
+	mvprintw(MAP_YSIZE, 62, "%d", score);
 
 	attrset(A_NORMAL);
 }

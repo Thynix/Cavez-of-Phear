@@ -72,7 +72,6 @@ int editor_main(char *file)
   y = EDITOR_STARTY;
 
   obj = MAP_STONE;
-  editor_draw_status();
 
   while(1) {
 
@@ -83,9 +82,11 @@ int editor_main(char *file)
     draw_map();
     if(fill_mode == FILL_RECT){ 
     	editor_draw_rect(y, x);
-    	if(xp1 != UNSET_COORD && yp1 != UNSET_COORD) centered_string(MAP_YSIZE-1, EDITOR_ESCRECT);
+    	if(xp1 != UNSET_COORD && yp1 != UNSET_COORD) centered_string(MAP_YSIZE-1, EDITOR_ESC_RECT);
     }
-    editor_draw_filltype();
+	editor_draw_status();
+	editor_draw_filltype();
+	editor_draw_filename(file);
     refresh();
 
     input = tolower(mvgetch(y, x));
@@ -279,11 +280,16 @@ int editor_main(char *file)
     else if(y > MAP_YSIZE - 2) y = 1;
     else if(x < 2) x = MAP_XSIZE - 3;
     else if(x > MAP_XSIZE - 3) x = 2;
-    
-	editor_draw_status();
 	}
 
 	return EXIT_SUCCESS;
+}
+
+void editor_draw_filename(char *file)
+{
+	attrset(COLOR_PAIR(COLOR_WHITE));
+	mvaddstr(0, 0, file);
+	attrset(A_NORMAL);
 }
 
 void editor_draw_filltype()
@@ -458,7 +464,6 @@ int count_object(int object)
 
   return rval;
 }
-
 
 void editor_draw_status(void)
 {
