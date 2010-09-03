@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 		custom_map = true;
 		first_run = false;
 		main_loop();
-		//splash_loop();
+		splash_loop();
 	}
 	else {
 		current_map[0] = 0x00;
@@ -109,6 +109,7 @@ void splash_loop(void)
 		{
 			make_ready();
 			load = LOAD_LEVEL;
+			custom_map = false;
 		}
 		else if(rval == SPLASH_CONTINUE)
 		{
