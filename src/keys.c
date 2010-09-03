@@ -4,7 +4,6 @@
 #include <ncurses.h>
 #include <string.h>
 #include "proto.h"
-#include "common.h"
 #define SetKey(index, one, two) keys[index][0] = one; keys[index][1] = two;
 #define Key(num, name) case num: sprintf(element, "%s", name); break
 

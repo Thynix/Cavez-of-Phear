@@ -61,7 +61,6 @@ int main(int argc, char **argv)
 
 	srand(time(0));
 	
-	//ncurses lower esc delay
 	if (getenv ("ESCDELAY") == NULL)
 	ESCDELAY = 25;
 
@@ -82,7 +81,7 @@ int main(int argc, char **argv)
 		custom_map = true;
 		first_run = false;
 		main_loop();
-		splash_loop();
+		//splash_loop();
 	}
 	else {
 		current_map[0] = 0x00;
@@ -331,7 +330,7 @@ int main_loop()
 				{
 					load_game_wrapper();
 				}
-				else if(press(BIND_LOAD))
+				else if(press(BIND_SOUND))
 				{
 					option_sound = !option_sound;
 					_beep();
@@ -502,14 +501,12 @@ int update_map()
 
 	for(y = 0; y < MAP_YSIZE; y++) {
 		for(x = 0; x < MAP_XSIZE; x++) {
-			//Stones above crush monsters
 			if(map[y][x] == MAP_STONE && map[y+1][x] == MAP_MONSTER) {
 				map[y+1][x] = MAP_EMPTY;
 				_beep();
 				return 1;
 			}
 
-			//Fall straight down
 			if(falls(map[y][x]) && map[y+1][x] == MAP_EMPTY) {
 				map[y+1][x] = map[y][x];
 				map[y][x] = MAP_EMPTY;
@@ -528,9 +525,7 @@ int update_map()
 				return 1;
 			}
 
-			//Unstable
 			if(falls(map[y][x]) && falls(map[y+1][x]) && map[y+2][x] != MAP_EMPTY) {
-				//Cascade left/right
 				for(i = -1; i <= 1; i += 2)
 				{
 					if(map[y][x+i] == MAP_EMPTY && map[y+1][x+i] == MAP_EMPTY) {
