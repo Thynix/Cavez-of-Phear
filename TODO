@@ -1,5 +1,5 @@
 TODO for CAVEZ of PHEAR:
 
    * Add metadata to maps. - what kind?
-
+   * Level select code should read the directory for available levels and not rely on a #define.
    * Add support for custom levelpacks. - zlib?
