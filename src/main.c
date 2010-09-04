@@ -138,6 +138,7 @@ void make_ready(void)
 
 void load_game_wrapper(void)
 {
+	clear();
 	FILE *fp = fopen("saved", "r");
 	if(fp != NULL) {
 		create_map(fp);
